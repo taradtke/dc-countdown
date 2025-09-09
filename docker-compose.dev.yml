@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: dc-countdown-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount entire project directory for hot reload
+      - .:/usr/src/app
+      # Use container's node_modules
+      - /usr/src/app/node_modules
+      # Persist database between restarts
+      - db-data:/usr/src/app/data
+      # Persist uploads between restarts
+      - uploads-data:/usr/src/app/uploads
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    restart: unless-stopped
+    command: nodemon --watch . --ext js,json,html,css --ignore '*.db' --ignore 'uploads/*' server.js
+
+volumes:
+  db-data:
+  uploads-data:

@@ -1,0 +1,10 @@
+Customer,Service,Backhaul Vendor,Circuit Location,Carrier Circuit ID,VLAN,Starmax MGMT IP,Router Public Network,TSR Router IP (Router Network),Customer Router IP (Router Network),Customer Public Network,CPE IP (Gateway of Customer Public Network)
+Shiny Side Up,900M Fiber,Everstream,Starmax Everstream NNI,Everstream CID: EVM-ETHS-ON-26447.P2P,,173.227.194.61,,,,,
+Thrive Architects,100M Fiber,Everstream,Starmax Everstream NNI,Everstream CID: EVM-ETHS-ON-26447.P2P,,173.227.194.61,,,,,
+Dana Investments,500M Fiber,Everstream,Starmax Everstream NNI,Everstream CID:   EVM-ETHS-ON-42990,,173.227.194.77,,,,,
+Equity Enterprises,50M Fiber,Everstream,Starmax Everstream NNI,Everstream CID: EVM-ETHS-ON-26978.P2P,,173.227.194.33,,,,,
+Spring Creek Church,250M Fiber,Everstream,Starmax Everstream NNI,Everstream CID: EVM-ETHS-ON-20908,,173.227.194.17,,,,,
+South Shore Yacht Club,500M Fiber,Spectrum,Starmax Spectrum NNI,Spectrum CID: 41.L1XX.005635..TWCC,,173.227.194.5,,,,,
+Evergreen Pharmacy,200M Fiber,Spectrum,Starmax Spectrum NNI,Spectrum CID: 41.L1XX.005538..TWCC,,173.227.194.93,,,,,
+Inpro Internet Circuit,1000M Fiber,Spectrum,TSR Spectrum NNI,,,N/A,,,,,
+Debt Advisors,50M Fiber,Spectrum,TSR Spectrum NNI,,,N/A,,,,,

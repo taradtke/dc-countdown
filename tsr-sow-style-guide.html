@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSR Solutions - SOW Styling Guide</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .section {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .section:last-child {
+            border-bottom: none;
+        }
+        .section-title {
+            color: #23416C;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 2.5rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .subsection-title {
+            color: #23416C;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 1.5rem 0 1rem 0;
+        }
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .color-item {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        .color-swatch {
+            width: 100%;
+            height: 80px;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        .typography-example {
+            margin: 1rem 0;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            background: #fafafa;
+        }
+        .component-example {
+            margin: 1rem 0;
+            padding: 1.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+        }
+        .grid-demo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        .spacing-demo {
+            background: #f0f4f8;
+            border: 2px dashed #23416C;
+            text-align: center;
+            color: #23416C;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="background: linear-gradient(135deg, #23416C, #457b9d); padding: 2rem; text-align: center; color: white; border-radius: 8px; margin: -2rem -2rem 2rem -2rem;">
+            <div style="font-size: 2.2rem; font-weight: bold; margin-bottom: 0.5rem;">TSR Solutions SOW Styling Guide</div>
+            <div style="font-size: 1.3rem; opacity: 0.9;">Design System Reference for Statement of Work Documents</div>
+        </div>
+
+        <!-- Color Palette Section -->
+        <div class="section">
+            <div class="section-title">Color Palette</div>
+            
+            <div class="subsection-title">Primary Colors</div>
+            <div class="color-palette">
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #23416C;"></div>
+                    <strong>Primary Dark</strong><br>
+                    <code>#23416C</code><br>
+                    <small>Headers, main text, borders</small>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #457b9d;"></div>
+                    <strong>Primary Light</strong><br>
+                    <code>#457b9d</code><br>
+                    <small>Gradients, accents</small>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: white; border: 1px solid #ccc;"></div>
+                    <strong>White</strong><br>
+                    <code>#ffffff</code><br>
+                    <small>Backgrounds, text on dark</small>
+                </div>
+            </div>
+
+            <div class="subsection-title">Functional Colors</div>
+            <div class="color-palette">
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #10b981;"></div>
+                    <strong>Success Green</strong><br>
+                    <code>#10b981</code><br>
+                    <small>Checkmarks, positive indicators</small>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #ef4444;"></div>
+                    <strong>Error Red</strong><br>
+                    <code>#ef4444</code><br>
+                    <small>X marks, negative indicators</small>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #f8fafc;"></div>
+                    <strong>Light Gray</strong><br>
+                    <code>#f8fafc</code><br>
+                    <small>Card backgrounds</small>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #f0f4f8;"></div>
+                    <strong>Blue Gray</strong><br>
+                    <code>#f0f4f8</code><br>
+                    <small>Highlighted sections</small>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #e5e7eb;"></div>
+                    <strong>Border Gray</strong><br>
+                    <code>#e5e7eb</code><br>
+                    <small>Borders, dividers</small>
+                </div>
+                <div class="color-item">
+                    <div class="color-swatch" style="background: #6b7280;"></div>
+                    <strong>Text Gray</strong><br>
+                    <code>#6b7280</code><br>
+                    <small>Secondary text, footer</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typography Section -->
+        <div class="section">
+            <div class="section-title">Typography</div>
+            
+            <div class="typography-example">
+                <div style="color: #23416C; font-size: 1.8rem; font-weight: bold; margin: 0 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid #e5e7eb;">Section Title</div>
+                <div class="code-block">color: #23416C; font-size: 1.8rem; font-weight: bold; margin: 2.5rem 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid #e5e7eb;</div>
+            </div>
+
+            <div class="typography-example">
+                <div style="color: #23416C; font-weight: bold; font-size: 1.3rem; margin: 0 0 1rem 0;">Phase/Card Title</div>
+                <div class="code-block">color: #23416C; font-weight: bold; font-size: 1.3rem; margin-bottom: 1rem;</div>
+            </div>
+
+            <div class="typography-example">
+                <div style="color: #23416C; font-weight: bold; font-size: 1.2rem; margin: 0 0 1rem 0;">Subsection Title</div>
+                <div class="code-block">color: #23416C; font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem;</div>
+            </div>
+
+            <div class="typography-example">
+                <p style="font-size: 1.1rem; line-height: 1.7; margin: 0;">Body Text - Regular paragraph text with comfortable line height</p>
+                <div class="code-block">font-size: 1.1rem; line-height: 1.7;</div>
+            </div>
+
+            <div class="typography-example">
+                <p style="font-size: 1.1rem; line-height: 1.7; margin: 0; font-weight: bold; color: #23416C;">Body Text - Bold/Important</p>
+                <div class="code-block">font-size: 1.1rem; line-height: 1.7; font-weight: bold; color: #23416C;</div>
+            </div>
+
+            <div class="typography-example">
+                <p style="font-size: 1.1rem; line-height: 1.7; margin: 0; font-style: italic;">Body Text - Italic/Value Proposition</p>
+                <div class="code-block">font-size: 1.1rem; line-height: 1.7; font-style: italic;</div>
+            </div>
+        </div>
+
+        <!-- Layout Patterns Section -->
+        <div class="section">
+            <div class="section-title">Layout Patterns</div>
+            
+            <div class="subsection-title">Header Section</div>
+            <div class="component-example">
+                <div style="background: linear-gradient(135deg, #23416C, #457b9d); padding: 2rem; text-align: center; color: white; border-radius: 8px;">
+                    <div style="background: white; display: inline-block; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                        <div style="width: 100px; height: 40px; background: #23416C; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem;">LOGO</div>
+                    </div>
+                    <div style="font-size: 2.2rem; font-weight: bold; margin-bottom: 0.5rem;">[PROJECT TITLE]</div>
+                    <div style="font-size: 1.3rem; opacity: 0.9; margin-bottom: 1.5rem;">Statement of Work for [CLIENT NAME]</div>
+                    <div style="font-size: 1.5rem; font-weight: bold;">[PRIMARY PHASE]: $[AMOUNT]</div>
+                </div>
+            </div>
+            <div class="code-block">background: linear-gradient(135deg, #23416C, #457b9d);
+padding: 2rem;
+text-align: center;
+color: white;
+border-radius: 8px;</div>
+
+            <div class="subsection-title">Two-Column Grid</div>
+            <div class="component-example">
+                <div class="grid-demo">
+                    <div class="spacing-demo" style="padding: 1rem;">Column 1</div>
+                    <div class="spacing-demo" style="padding: 1rem;">Column 2</div>
+                </div>
+            </div>
+            <div class="code-block">display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 2rem;</div>
+
+            <div class="subsection-title">Container/Card Layout</div>
+            <div class="component-example" style="background: #f8fafc;">
+                <div style="padding: 1.5rem; border-radius: 8px; background: white; border: 1px solid #e5e7eb;">
+                    <div style="color: #23416C; font-weight: bold; font-size: 1.3rem; margin-bottom: 1rem;">Card Title</div>
+                    <p style="margin: 0;">Card content goes here with proper spacing and styling.</p>
+                </div>
+            </div>
+            <div class="code-block">padding: 1.5rem;
+border-radius: 8px;
+background: white;
+border: 1px solid #e5e7eb;</div>
+        </div>
+
+        <!-- Components Section -->
+        <div class="section">
+            <div class="section-title">Components</div>
+            
+            <div class="subsection-title">Custom Lists with Checkmarks</div>
+            <div class="component-example">
+                <ul style="margin: 0; padding: 0; list-style: none;">
+                    <li style="margin-bottom: 0.75rem; padding-left: 1.5rem; position: relative;">
+                        <span style="color: #10b981; position: absolute; left: 0; font-weight: bold;">✓</span>
+                        List item with green checkmark
+                    </li>
+                    <li style="margin-bottom: 0.75rem; padding-left: 1.5rem; position: relative;">
+                        <span style="color: #10b981; position: absolute; left: 0; font-weight: bold;">✓</span>
+                        Another list item
+                    </li>
+                    <li style="margin-bottom: 0.75rem; padding-left: 1.5rem; position: relative;">
+                        <span style="color: #ef4444; position: absolute; left: 0; font-weight: bold;">✗</span>
+                        Out of scope item with red X
+                    </li>
+                </ul>
+            </div>
+            <div class="code-block">ul { margin: 0; padding: 0; list-style: none; }
+li { margin-bottom: 0.75rem; padding-left: 1.5rem; position: relative; }
+span { color: #10b981; position: absolute; left: 0; font-weight: bold; } /* ✓ */
+span { color: #ef4444; position: absolute; left: 0; font-weight: bold; } /* ✗ */</div>
+
+            <div class="subsection-title">Estimation Table</div>
+            <div class="component-example">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left; padding: 0.75rem; border-bottom: 1px solid #e5e7eb; color: #23416C;">Activity</th>
+                            <th style="text-align: right; padding: 0.75rem; border-bottom: 1px solid #e5e7eb; color: #23416C;">Estimated Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">Sample Activity 1</td>
+                            <td style="text-align: right; padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">20</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">Sample Activity 2</td>
+                            <td style="text-align: right; padding: 0.75rem; border-bottom: 1px solid #e5e7eb;">15</td>
+                        </tr>
+                        <tr style="font-weight: bold; color: #23416C;">
+                            <td style="padding: 0.75rem;">Total Estimated Hours</td>
+                            <td style="text-align: right; padding: 0.75rem;">35</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="code-block">table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 0.75rem; border-bottom: 1px solid #e5e7eb; color: #23416C; }
+td { padding: 0.75rem; border-bottom: 1px solid #e5e7eb; }</div>
+
+            <div class="subsection-title">Highlighted Information Boxes</div>
+            <div class="component-example">
+                <div style="background-color: #f0f4f8; padding: 1.5rem; border-radius: 8px; margin: 1rem 0;">
+                    <div style="font-weight: bold; color: #23416C; margin-bottom: 0.5rem; font-size: 1.1rem;">Note:</div>
+                    <p style="margin: 0;">This is an important note or additional context that needs highlighting.</p>
+                </div>
+            </div>
+            <div class="code-block">background-color: #f0f4f8;
+padding: 1.5rem;
+border-radius: 8px;</div>
+
+            <div class="subsection-title">Cost/Estimate Highlight</div>
+            <div class="component-example">
+                <div style="background-color: #f0f4f8; padding: 1rem; border-radius: 6px;">
+                    <p style="margin: 0; font-weight: bold;">Estimated Cost: $25,000</p>
+                </div>
+            </div>
+            <div class="code-block">background-color: #f0f4f8;
+padding: 1rem;
+border-radius: 6px;</div>
+        </div>
+
+        <!-- Spacing System Section -->
+        <div class="section">
+            <div class="section-title">Spacing System</div>
+            
+            <div class="subsection-title">Standard Spacing Values</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin: 1rem 0;">
+                <div class="spacing-demo" style="padding: 0.5rem;">0.5rem (8px)</div>
+                <div class="spacing-demo" style="padding: 0.75rem;">0.75rem (12px)</div>
+                <div class="spacing-demo" style="padding: 1rem;">1rem (16px)</div>
+                <div class="spacing-demo" style="padding: 1.5rem;">1.5rem (24px)</div>
+                <div class="spacing-demo" style="padding: 2rem;">2rem (32px)</div>
+                <div class="spacing-demo" style="padding: 2.5rem;">2.5rem (40px)</div>
+            </div>
+
+            <div class="subsection-title">Common Spacing Applications</div>
+            <div class="code-block">/* Containers */
+max-width: 1200px;
+margin: 0 auto;
+padding: 2rem;
+
+/* Sections */
+margin-bottom: 2rem;
+margin-bottom: 3rem; /* larger sections */
+
+/* Cards */
+padding: 1.5rem;
+gap: 2rem; /* grid gaps */
+
+/* Lists */
+margin-bottom: 0.75rem; /* list items */
+
+/* Headers */
+margin: 2.5rem 0 1rem 0;</div>
+        </div>
+
+        <!-- Usage Guidelines Section -->
+        <div class="section">
+            <div class="section-title">Usage Guidelines</div>
+            
+            <div class="subsection-title">Brand Colors</div>
+            <ul>
+                <li><strong>Primary Dark (#23416C):</strong> Use for all headings, important text, and primary brand elements</li>
+                <li><strong>Primary Light (#457b9d):</strong> Use in gradients with Primary Dark, accent elements</li>
+                <li><strong>Success Green (#10b981):</strong> Only for checkmarks and positive indicators</li>
+                <li><strong>Error Red (#ef4444):</strong> Only for X marks and items to exclude</li>
+            </ul>
+
+            <div class="subsection-title">Typography Hierarchy</div>
+            <ul>
+                <li><strong>Section Titles (1.8rem):</strong> Major document sections</li>
+                <li><strong>Phase/Card Titles (1.3rem):</strong> Individual phases, cards, major subsections</li>
+                <li><strong>Subsection Titles (1.2rem):</strong> Within cards, methodology areas</li>
+                <li><strong>Body Text (1.1rem):</strong> All paragraph content</li>
+            </ul>
+
+            <div class="subsection-title">Layout Rules</div>
+            <ul>
+                <li>Maximum container width: 1200px</li>
+                <li>Use 2rem padding for main containers</li>
+                <li>Use 2rem gaps for grid layouts</li>
+                <li>All cards should have 1.5rem internal padding</li>
+                <li>Use border-radius: 8px for cards, 6px for smaller elements</li>
+                <li>Standard box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1)</li>
+            </ul>
+
+            <div class="subsection-title">Placeholder Text Conventions</div>
+            <ul>
+                <li><strong>[BRACKETS]:</strong> Content to be replaced with client-specific information</li>
+                <li><strong>[CLIENT NAME]:</strong> Client organization name</li>
+                <li><strong>[PROJECT TITLE]:</strong> Specific project name</li>
+                <li><strong>[AMOUNT], [HOURS], [RATE]:</strong> Financial figures</li>
+                <li><strong>[Activity N], [Objective N]:</strong> Numbered items in lists</li>
+            </ul>
+        </div>
+
+        <!-- Quick Reference Section -->
+        <div class="section">
+            <div class="section-title">Quick Reference</div>
+            
+            <div class="subsection-title">Copy-Paste CSS Classes</div>
+            <div class="code-block">/* Main container */
+.sow-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Header section */
+.sow-header {
+    background: linear-gradient(135deg, #23416C, #457b9d);
+    padding: 2rem;
+    text-align: center;
+    color: white;
+    border-radius: 8px 8px 0 0;
+    margin: -2rem -2rem 2rem -2rem;
+}
+
+/* Section title */
+.section-title {
+    color: #23416C;
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 2.5rem 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+/* Card */
+.sow-card {
+    padding: 1.5rem;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 2rem;
+}
+
+/* Grid layout */
+.sow-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+/* Custom list */
+.sow-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sow-list li {
+    margin-bottom: 0.75rem;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.sow-list .checkmark {
+    color: #10b981;
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+}
+
+.sow-list .x-mark {
+    color: #ef4444;
+    position: absolute;
+    left: 0;
+    font-weight: bold;}</div>
+        </div>
+
+        <div style="margin-top: 2rem; font-size: 0.9rem; color: #6b7280; text-align: center;">
+            © 2025 TSR Solutions, Inc. All rights reserved. | SOW Styling Guide v1.0
+        </div>
+    </div>
+</body>
+</html> 

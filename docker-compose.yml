@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: dc-countdown-app
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount source code for development with hot reload
+      - .:/usr/src/app
+      # Exclude node_modules to use container's dependencies
+      - /usr/src/app/node_modules
+      # Persist database
+      - ./data:/usr/src/app/data
+      # Persist uploads
+      - ./uploads:/usr/src/app/uploads
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DB_PATH=/usr/src/app/data/migration.db
+    command: npm run dev
+    restart: unless-stopped
+
+  # Optional: Add nginx for production-like setup
+  nginx:
+    image: nginx:alpine
+    container_name: dc-countdown-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - .:/usr/share/nginx/html:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+    profiles:
+      - production
+
+volumes:
+  data:
+  uploads:

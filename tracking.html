@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSR Migration Tracking Dashboard</title>
+    <link rel="stylesheet" href="tracking-styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="logo">TSR</h1>
+            <h2 class="tagline">Migration Tracking Dashboard</h2>
+            <nav class="nav-tabs">
+                <button class="tab-btn active" data-tab="servers">Servers</button>
+                <button class="tab-btn" data-tab="vlans">VLANs</button>
+                <button class="tab-btn" data-tab="circuits">Carrier Circuits</button>
+                <button class="tab-btn" data-tab="nnis">Carrier NNIs</button>
+                <button class="tab-btn" data-tab="public-networks">Public Networks</button>
+                <button class="tab-btn" data-tab="voice">Voice Systems</button>
+                <button class="tab-btn" data-tab="colo">Colo Customers</button>
+                <button class="tab-btn" data-tab="customers">👥 Customers</button>
+                <button class="tab-btn" data-tab="critical">🚨 Critical Items</button>
+                <button class="tab-btn" data-tab="leaderboard">🏆 Leaderboard</button>
+            </nav>
+        </header>
+
+        <main>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="stat-label">Total Items:</span>
+                    <span class="stat-value" id="total-items">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Completed:</span>
+                    <span class="stat-value completed" id="completed-items">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Remaining:</span>
+                    <span class="stat-value remaining" id="remaining-items">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Progress:</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <span class="stat-value" id="progress-percent">0%</span>
+                </div>
+            </div>
+
+            <div class="import-section">
+                <input type="file" id="csv-upload" accept=".csv" style="display: none;">
+                <button class="btn btn-primary" id="import-btn">Import CSV</button>
+                <button class="btn btn-secondary" id="refresh-btn">Refresh Data</button>
+                <button class="btn btn-secondary" id="back-to-countdown">Back to Countdown</button>
+            </div>
+
+            <div class="tab-content active" id="servers-tab">
+                <h3>Servers Migration Status</h3>
+                <div class="table-container">
+                    <table id="servers-table">
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>VM Name</th>
+                                <th>Host</th>
+                                <th>IP Addresses</th>
+                                <th>Contacted</th>
+                                <th>Test Move Date</th>
+                                <th>Move Date</th>
+                                <th>Backups (Hycu)</th>
+                                <th>Backups (Veeam)</th>
+                                <th>Firewall/Network</th>
+                                <th>Customer Notified</th>
+                                <th>Engineer</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-content" id="vlans-tab">
+                <h3>VLANs Migration Status</h3>
+                <div class="table-container">
+                    <table id="vlans-table">
+                        <thead>
+                            <tr>
+                                <th>VLAN ID</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Network</th>
+                                <th>Gateway</th>
+                                <th>Migrated</th>
+                                <th>Verified</th>
+                                <th>Engineer</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-content" id="circuits-tab">
+                <h3>Carrier Circuits Migration Status</h3>
+                <div class="table-container">
+                    <table id="circuits-table">
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Service</th>
+                                <th>Vendor</th>
+                                <th>Location</th>
+                                <th>Circuit ID</th>
+                                <th>VLAN</th>
+                                <th>Mgmt IP</th>
+                                <th>Migrated</th>
+                                <th>Tested</th>
+                                <th>Cutover</th>
+                                <th>Engineer</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-content" id="nnis-tab">
+                <h3>Carrier NNIs Migration Status</h3>
+                <div class="table-container">
+                    <table id="nnis-table">
+                        <thead>
+                            <tr>
+                                <th>Carrier</th>
+                                <th>Circuit ID</th>
+                                <th>Type</th>
+                                <th>Bandwidth</th>
+                                <th>Location</th>
+                                <th>VLAN Range</th>
+                                <th>IP Block</th>
+                                <th>Current Device</th>
+                                <th>New Device</th>
+                                <th>Status</th>
+                                <th>Tested</th>
+                                <th>Cutover</th>
+                                <th>Engineer</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-content" id="public-networks-tab">
+                <h3>Public Networks Migration Status</h3>
+                <div class="table-container">
+                    <table id="public-networks-table">
+                        <thead>
+                            <tr>
+                                <th>Network</th>
+                                <th>Customer</th>
+                                <th>Action</th>
+                                <th>VLAN</th>
+                                <th>Current Devices</th>
+                                <th>Current Interfaces</th>
+                                <th>New Devices</th>
+                                <th>New Interfaces</th>
+                                <th>Migrated</th>
+                                <th>Tested</th>
+                                <th>Cutover</th>
+                                <th>Engineer</th>
+                                <th>Dependencies</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-content" id="voice-tab">
+                <h3>Voice Systems Migration Status</h3>
+                <div class="table-container">
+                    <table id="voice-table">
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>VM Name</th>
+                                <th>System Type</th>
+                                <th>Extension Count</th>
+                                <th>Migrated</th>
+                                <th>Tested</th>
+                                <th>Cutover Completed</th>
+                                <th>Engineer</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-content" id="colo-tab">
+                <h3>Colo Customers Migration Status</h3>
+                <div class="table-container">
+                    <table id="colo-table">
+                        <thead>
+                            <tr>
+                                <th>Customer Name</th>
+                                <th>Rack Location</th>
+                                <th>New Cabinet Number</th>
+                                <th>Equipment Count</th>
+                                <th>Power Usage</th>
+                                <th>Contacted</th>
+                                <th>Migration Scheduled</th>
+                                <th>Migration Completed</th>
+                                <th>Engineer</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-content" id="customers-tab">
+                <h3>👥 Customer Migration Overview</h3>
+                <div class="customers-container">
+                    <div class="customers-header">
+                        <p>View migration status and dependencies for each customer</p>
+                        <button class="btn btn-primary" onclick="showAddCustomer()">+ Add Customer</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="customers-table">
+                            <thead>
+                                <tr>
+                                    <th>Customer Name</th>
+                                    <th>Contact Status</th>
+                                    <th>Primary Contact</th>
+                                    <th>Total Assets</th>
+                                    <th>Servers</th>
+                                    <th>Networks</th>
+                                    <th>Circuits</th>
+                                    <th>Colo</th>
+                                    <th>Progress</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="critical-tab">
+                <h3>🚨 Critical Items / Loose Ends</h3>
+                <div class="critical-header">
+                    <p>Track important tasks and initiatives that need to be completed</p>
+                    <button class="btn btn-primary" onclick="showAddCriticalItem()">+ Add Critical Item</button>
+                </div>
+                <div class="table-container">
+                    <table id="critical-table">
+                        <thead>
+                            <tr>
+                                <th>Priority</th>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Success Criteria</th>
+                                <th>Status</th>
+                                <th>Engineer</th>
+                                <th>Date Assigned</th>
+                                <th>Date Completed</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-content" id="leaderboard-tab">
+                <h3>🏆 Engineer Leaderboard</h3>
+                <div class="leaderboard-container">
+                    <div class="leaderboard-header">
+                        <p>Track engineer progress and encourage friendly competition!</p>
+                    </div>
+                    
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <h4>Asset Type Completion</h4>
+                            <canvas id="assetCompletionChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h4>Engineer Performance</h4>
+                            <canvas id="engineerProgressChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h4>Customer Contact Status</h4>
+                            <canvas id="customerContactChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h4>Work Distribution by Engineer</h4>
+                            <canvas id="workDistributionChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <table id="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Engineer</th>
+                                <th>Total Assigned</th>
+                                <th>Total Planned</th>
+                                <th>Total Completed</th>
+                                <th>Completion Rate</th>
+                                <th>Breakdown</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Update Item Status</h3>
+            <form id="edit-form">
+                <div id="form-fields"></div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="engineers.js"></script>
+    <script src="tracking.js"></script>
+</body>
+</html>

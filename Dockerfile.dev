@@ -1,0 +1,22 @@
+FROM node:18-alpine
+
+# Install nodemon globally for development
+RUN npm install -g nodemon
+
+# Create app directory
+WORKDIR /usr/src/app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including devDependencies)
+RUN npm install
+
+# Create necessary directories
+RUN mkdir -p uploads data
+
+# Expose port
+EXPOSE 3000
+
+# Use nodemon for hot reload in development
+CMD ["nodemon", "server.js"]
