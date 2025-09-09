@@ -6,8 +6,6 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: dc-countdown-dev
-    ports:
-      - "3000:3000"
     volumes:
       # Mount entire project directory for hot reload
       - .:/usr/src/app
@@ -22,7 +20,35 @@ services:
       - PORT=3000
     restart: unless-stopped
     command: nodemon --watch . --ext js,json,html,css --ignore '*.db' --ignore 'uploads/*' server.js
+    networks:
+      - dc-network
+    # Remove external port mapping since nginx will proxy
+    expose:
+      - "3000"
+
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - '80:80'     # Public HTTP Port
+      - '443:443'   # Public HTTPS Port
+      - '81:81'     # Admin Web Port
+    volumes:
+      - nginx-data:/data
+      - nginx-letsencrypt:/etc/letsencrypt
+    networks:
+      - dc-network
+    environment:
+      # Uncomment to disable IPV6
+      DISABLE_IPV6: 'true'
+
+networks:
+  dc-network:
+    driver: bridge
 
 volumes:
   db-data:
   uploads-data:
+  nginx-data:
+  nginx-letsencrypt:

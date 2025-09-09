@@ -4,17 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TSR DC Migration Countdown & Tracking System - A real-time data center migration tracker with a hard deadline of November 20, 2025. The system tracks migration progress for servers, VLANs, networks, voice systems, and colo customers.
+TSR DC Migration Countdown & Tracking System - A real-time data center migration tracker with a hard deadline of November 20, 2025. The system tracks migration progress for servers, VLANs, networks, voice systems, carrier circuits, public networks, carrier NNIs, colo customers, and critical items with dependency management and engineer performance tracking.
 
 ## Essential Commands
 
 ### Development
 ```bash
-# Local development (with hot reload)
+# Local development with hot reload
 npm run dev
 
-# Docker development (recommended)
-docker-compose -f docker-compose.dev.yml up
+# Docker development with Nginx Proxy Manager
+npm run docker:dev:build  # Initial build
+npm run docker:dev        # Subsequent runs
+npm run docker:down       # Stop containers
 
 # Install dependencies
 npm install
@@ -31,11 +33,18 @@ docker-compose up -d
 
 ### Database Operations
 ```bash
-# Backup database (Docker)
-docker cp dc-countdown-dev:/usr/src/app/data/migration.db ./backup-migration.db
+# Create backup (auto-timestamped, compressed)
+npm run backup
+# or ./backup.sh
+
+# Restore from backup (interactive)
+npm run restore
+# or ./restore.sh [backup-file]
 
 # Reset database
-rm migration.db  # or remove Docker volume: docker volume rm dc-countdown_db-data
+rm migration.db  # Local
+# or
+docker volume rm dc-countdown_db-data  # Docker
 ```
 
 ## Architecture Overview
@@ -45,36 +54,65 @@ rm migration.db  # or remove Docker volume: docker volume rm dc-countdown_db-dat
 CSV Import → SQLite Database → Express API → Frontend (HTML/JS) → User Updates → Database
 ```
 
+### Complete API Structure
+All entities follow REST patterns with full CRUD operations:
+
+**Core Migration Assets:**
+- `/api/servers` - Server infrastructure
+- `/api/vlans` - VLAN configurations
+- `/api/networks` - Network infrastructure
+- `/api/voice-systems` - Voice/telephony systems
+- `/api/colo-customers` - Colocation customers
+
+**Extended Assets:**
+- `/api/carrier-circuits` - Carrier circuit tracking
+- `/api/public-networks` - Public network configurations
+- `/api/carrier-nnis` - Carrier NNI connections
+- `/api/critical-items` - Priority task management
+
+**Customer & Dependency Management:**
+- `/api/customers` - Customer relationships
+- `/api/customers/:id/assets` - Customer asset linking
+- `/api/dependencies` - Asset dependency mapping
+
+**Analytics & Monitoring:**
+- `/api/stats` - Real-time migration statistics
+- `/api/leaderboard` - Engineer performance metrics
+- `/api/dependency-counts` - Dependency analytics
+
 ### Database Schema & Completion Criteria
+Each asset type has specific completion requirements tracked in SQLite:
+
 - **servers**: Completed when `customer_notified_successful_cutover = 1`
 - **vlans**: Completed when `migrated = 1 AND verified = 1`
 - **networks**: Completed when `cutover_completed = 1`
 - **voice_systems**: Completed when `cutover_completed = 1`
 - **colo_customers**: Completed when `migration_completed = 1`
-
-### API Pattern
-All entities follow the same REST pattern:
-- `GET /api/{entity}` - List all
-- `POST /api/{entity}/import` - CSV import
-- `PUT /api/{entity}/:id` - Update single item
-- `GET /api/stats` - Aggregated statistics
-
-Entities: `servers`, `vlans`, `networks`, `voice-systems`, `colo-customers`
+- **carrier_circuits**: Completed when `cutover_completed = 1`
+- **public_networks**: Completed when `cutover_completed = 1`
+- **carrier_nnis**: Completed when `cutover_completed = 1`
 
 ### Frontend Architecture
 Two separate interfaces communicate with the same backend:
 
-1. **index.html/countdown.js**: Live countdown with completion rate calculations
+1. **index.html/countdown.js**: Live countdown dashboard
+   - Real-time countdown to November 20, 2025
    - Polls `/api/stats` every 30 seconds
    - Calculates required daily/hourly completion rates
+   - Progress bars for each asset type
 
-2. **tracking.html/tracking.js**: Management dashboard with tabbed interface
+2. **tracking.html/tracking.js**: Management dashboard
+   - 10-tab interface for all asset types
    - Inline editing with immediate database updates
    - CSV import functionality per entity type
+   - Leaderboard with Chart.js visualizations
+   - Customer management and asset linking
+   - Critical items tracking with priority levels
+   - Dependency visualization
 
 ### Critical Business Logic
 
-The system calculates dynamic completion rates in `countdown.js`:
+**Dynamic Completion Rate Calculation** (`countdown.js`):
 ```javascript
 // Total hours remaining until deadline
 const totalHours = (daysRemaining * 24) + hoursRemaining + (minutesRemaining / 60);
@@ -82,27 +120,49 @@ const totalHours = (daysRemaining * 24) + hoursRemaining + (minutesRemaining / 6
 const ratePerDay = quantity / totalDays;
 ```
 
+**Engineer Assignment**: All assets can be assigned to engineers from centralized list (`engineers.js`)
+
+**Customer Asset Linking**: Assets linked via `customer_assets` junction table with type-specific references
+
+### Docker Configuration
+
+**Development** (`docker-compose.dev.yml`):
+- Application container with nodemon hot reload
+- Nginx Proxy Manager for SSL and reverse proxy
+- Shared `dc-network` for container communication
+- Persistent volumes for database and uploads
+
+**Production** (`docker-compose.yml`):
+- Optional nginx reverse proxy with caching
+- Profile-based deployment options
+- Static file serving with 1-year cache headers
+
+**Nginx Proxy Manager Access**:
+- Admin panel: `http://server:81`
+- Default credentials: `admin@example.com` / `changeme` (change immediately)
+- Configure proxy: `dc.tsr.ai` → `app:3000`
+
 ### Database Connection
 Database path is configurable via environment variable:
 - Local: `DB_PATH=./migration.db`
 - Docker: `DB_PATH=/usr/src/app/data/migration.db`
 
-The Database class (`database.js`) automatically creates tables on initialization and handles all CRUD operations.
+The Database class (`database.js`) automatically creates/migrates tables on initialization.
 
-### Docker Configuration
-- **Development** (`docker-compose.dev.yml`): Uses nodemon with volume mounts for hot reload
-- **Production** (`docker-compose.yml`): Includes optional nginx reverse proxy
-- Data persists in Docker volumes: `db-data` and `uploads-data`
+### CSV Import Format Requirements
 
-### CSV Import Format
-Each entity has specific CSV column requirements:
+Each entity type requires specific CSV columns:
+
 - **Servers**: Customer, VM Name, Host, IP Addresses, Cores, Memory Capacity, Storage Used (GiB), Storage Provisioned (GiB)
 - **VLANs**: VLAN ID, Name, Description, Network, Gateway
 - **Networks**: Network Name, Provider, Circuit ID, Bandwidth
 - **Voice Systems**: Customer, VM Name, System Type, Extension Count
 - **Colo Customers**: Customer Name, Rack Location, New Cabinet Number, Equipment Count, Power Usage
+- **Carrier Circuits**: Circuit ID, Provider, Type, Bandwidth, Location A, Location Z
+- **Public Networks**: Network Name, CIDR, Provider, Gateway
+- **Carrier NNIs**: NNI ID, Provider, Type, Bandwidth, Location
 
-The import process uses multer for file handling and csv-parser for parsing, with automatic field mapping based on column headers.
+Import process uses multer for file handling and csv-parser for parsing with automatic field mapping.
 
 ## Key Implementation Details
 
@@ -121,7 +181,24 @@ The import process uses multer for file handling and csv-parser for parsing, wit
 - Server maintains all state in SQLite database
 - Frontend fetches fresh data on tab switches
 
+### Backup & Restore System
+- **Automated backups** with compression and timestamp
+- **10 backup retention** with automatic cleanup
+- **Interactive restore** with confirmation prompts
+- Works with running or stopped containers
+- Handles both database and uploads
+
 ### Security Considerations
 - CORS enabled for all origins (adjust for production)
 - No authentication system implemented
 - SQLite database file should be protected in production
+- Nginx Proxy Manager provides SSL via Let's Encrypt
+
+## Important Architectural Decisions
+
+1. **No Testing Framework**: Project has no automated tests - manual testing only
+2. **Vanilla JavaScript**: No frontend framework by design for simplicity
+3. **SQLite Database**: Single-file database for portability
+4. **Polling over WebSockets**: Simpler implementation for real-time updates
+5. **Docker-First Development**: Consistent environment across dev/QA/prod
+6. **Nginx Proxy Manager**: Professional SSL and reverse proxy management
