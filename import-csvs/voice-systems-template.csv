@@ -1,4 +1,4 @@
-Customer,VM Name,System Type,Extension Count
-Acme Corp,voip-pbx-01,Asterisk,50
-Tech Solutions,phone-system-01,3CX,100
-Global Enterprises,voice-server-01,FreePBX,75
+Customer,VM Name,System Type,Extension Count,SIP Provider,SIP Delivery Method
+Acme Corp,voip-pbx-01,Asterisk,50,Thinq,Direct
+Tech Solutions,phone-system-01,3CX,100,CenturyLink,Ingate01
+Global Enterprises,voice-server-01,FreePBX,75,Thinq,Ingate02

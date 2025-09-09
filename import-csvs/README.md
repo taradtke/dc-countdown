@@ -40,6 +40,8 @@ This directory contains template CSV files for importing data into the DC Migrat
 - **VM Name**: Voice system VM name
 - **System Type**: PBX type (e.g., Asterisk, 3CX, FreePBX)
 - **Extension Count**: Number of extensions (integer)
+- **SIP Provider**: SIP trunk provider (Thinq, CenturyLink)
+- **SIP Delivery Method**: SIP delivery method (Direct, Ingate01, Ingate02)
 
 ### colo-customers-template.csv
 - **Customer Name**: Company name

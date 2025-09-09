@@ -395,8 +395,8 @@ class Database {
   importVoiceSystems(voiceSystems) {
     return new Promise((resolve, reject) => {
       const stmt = this.db.prepare(`
-        INSERT INTO voice_systems (customer, vm_name, system_type, extension_count)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO voice_systems (customer, vm_name, system_type, extension_count, sip_provider, sip_delivery_method)
+        VALUES (?, ?, ?, ?, ?, ?)
       `);
 
       voiceSystems.forEach(system => {
@@ -404,7 +404,9 @@ class Database {
           system['Customer'] || system.customer,
           system['VM Name'] || system.vm_name,
           system['System Type'] || system.system_type,
-          system['Extension Count'] || system.extension_count
+          system['Extension Count'] || system.extension_count,
+          system['SIP Provider'] || system.sip_provider || null,
+          system['SIP Delivery Method'] || system.sip_delivery_method || null
         );
       });
 
@@ -1261,6 +1263,159 @@ class Database {
       this.db.run(query, values, function(err) {
         if (err) reject(err);
         else resolve(this.lastID);
+      });
+    });
+  }
+
+  importCustomers(customers) {
+    return new Promise((resolve, reject) => {
+      console.log(`Preparing to import ${customers.length} customers`);
+      
+      const stmt = this.db.prepare(`
+        INSERT OR IGNORE INTO customers (
+          name, contact_name, contact_email, contact_phone, 
+          account_number, contract_type, priority_level, notes
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+      
+      let imported = 0;
+      let mapped = 0;
+      
+      customers.forEach((customer) => {
+        const name = customer['Customer Name'] || customer.name || '';
+        const contactName = customer['Contact Name'] || customer.contact_name || '';
+        const contactEmail = customer['Contact Email'] || customer.contact_email || '';
+        const contactPhone = customer['Contact Phone'] || customer.contact_phone || '';
+        const accountNumber = customer['Account Number'] || customer.account_number || '';
+        const contractType = customer['Contract Type'] || customer.contract_type || '';
+        const priorityLevel = customer['Priority Level'] || customer.priority_level || '';
+        const notes = customer['Notes'] || customer.notes || '';
+        
+        stmt.run(
+          name, contactName, contactEmail, contactPhone,
+          accountNumber, contractType, priorityLevel, notes,
+          function(err) {
+            if (err) {
+              console.error('Error importing customer:', err);
+            } else if (this.changes > 0) {
+              imported++;
+              console.log(`Imported customer: ${name}`);
+            }
+          }
+        );
+      });
+      
+      stmt.finalize(async (err) => {
+        if (err) {
+          console.error('Finalize error:', err);
+          reject(err);
+        } else {
+          console.log(`Import complete. Imported ${imported} new customers`);
+          
+          // Now attempt to map assets to customers
+          try {
+            mapped = await this.autoMapAssetsToCustomers();
+            resolve({ imported, mapped });
+          } catch (mapErr) {
+            console.error('Error mapping assets:', mapErr);
+            resolve({ imported, mapped: 0 });
+          }
+        }
+      });
+    });
+  }
+
+  autoMapAssetsToCustomers() {
+    return new Promise((resolve, reject) => {
+      let totalMapped = 0;
+      
+      // Get all customers for mapping
+      this.db.all("SELECT id, name FROM customers WHERE name != ''", (err, customers) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        
+        // Create a map for quick lookup (case-insensitive)
+        const customerMap = {};
+        customers.forEach(c => {
+          customerMap[c.name.toLowerCase().trim()] = c.id;
+          // Also map common variations
+          const simplified = c.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (simplified) customerMap[simplified] = c.id;
+        });
+        
+        // Map servers
+        this.db.all("SELECT id, customer FROM servers WHERE customer != '' AND customer IS NOT NULL", (err, servers) => {
+          if (err) {
+            console.error('Error fetching servers:', err);
+          } else {
+            servers.forEach(server => {
+              const customerName = server.customer.toLowerCase().trim();
+              const customerId = customerMap[customerName] || customerMap[customerName.replace(/[^a-z0-9]/g, '')];
+              
+              if (customerId) {
+                this.db.run(
+                  "INSERT OR IGNORE INTO customer_assets (customer_id, asset_type, asset_id) VALUES (?, 'servers', ?)",
+                  [customerId, server.id],
+                  (err) => {
+                    if (!err) totalMapped++;
+                  }
+                );
+              }
+            });
+          }
+        });
+        
+        // Map voice systems
+        this.db.all("SELECT id, customer FROM voice_systems WHERE customer != '' AND customer IS NOT NULL", (err, systems) => {
+          if (err) {
+            console.error('Error fetching voice systems:', err);
+          } else {
+            systems.forEach(system => {
+              const customerName = system.customer.toLowerCase().trim();
+              const customerId = customerMap[customerName] || customerMap[customerName.replace(/[^a-z0-9]/g, '')];
+              
+              if (customerId) {
+                this.db.run(
+                  "INSERT OR IGNORE INTO customer_assets (customer_id, asset_type, asset_id) VALUES (?, 'voice_systems', ?)",
+                  [customerId, system.id],
+                  (err) => {
+                    if (!err) totalMapped++;
+                  }
+                );
+              }
+            });
+          }
+        });
+        
+        // Map colo customers by name
+        this.db.all("SELECT id, customer_name FROM colo_customers WHERE customer_name != '' AND customer_name IS NOT NULL", (err, colos) => {
+          if (err) {
+            console.error('Error fetching colo customers:', err);
+          } else {
+            colos.forEach(colo => {
+              const customerName = colo.customer_name.toLowerCase().trim();
+              const customerId = customerMap[customerName] || customerMap[customerName.replace(/[^a-z0-9]/g, '')];
+              
+              if (customerId) {
+                this.db.run(
+                  "INSERT OR IGNORE INTO customer_assets (customer_id, asset_type, asset_id) VALUES (?, 'colo_customers', ?)",
+                  [customerId, colo.id],
+                  (err) => {
+                    if (!err) totalMapped++;
+                  }
+                );
+              }
+            });
+          }
+        });
+        
+        // Give operations time to complete
+        setTimeout(() => {
+          console.log(`Auto-mapped ${totalMapped} assets to customers`);
+          resolve(totalMapped);
+        }, 500);
       });
     });
   }

@@ -390,11 +390,25 @@ async function loadVoiceSystems() {
         const isCompleted = system.cutover_completed;
         if (isCompleted) row.classList.add('completed-row');
         
+        // Create SIP Provider dropdown
+        const sipProviderOptions = ['', 'Thinq', 'CenturyLink'];
+        const sipProviderSelect = sipProviderOptions.map(opt => 
+            `<option value="${opt}" ${system.sip_provider === opt ? 'selected' : ''}>${opt || '-- Select --'}</option>`
+        ).join('');
+        
+        // Create SIP Delivery Method dropdown
+        const sipDeliveryOptions = ['', 'Direct', 'Ingate01', 'Ingate02'];
+        const sipDeliverySelect = sipDeliveryOptions.map(opt => 
+            `<option value="${opt}" ${system.sip_delivery_method === opt ? 'selected' : ''}>${opt || '-- Select --'}</option>`
+        ).join('');
+        
         row.innerHTML = `
             <td>${system.customer || ''}</td>
             <td>${system.vm_name || ''}</td>
             <td>${system.system_type || ''}</td>
             <td>${system.extension_count || ''}</td>
+            <td><select onchange="updateVoiceSystem(${system.id}, 'sip_provider', this.value)">${sipProviderSelect}</select></td>
+            <td><select onchange="updateVoiceSystem(${system.id}, 'sip_delivery_method', this.value)">${sipDeliverySelect}</select></td>
             <td class="checkbox-cell"><input type="checkbox" ${system.migrated ? 'checked' : ''} onchange="updateVoiceSystem(${system.id}, 'migrated', this.checked)"></td>
             <td class="checkbox-cell"><input type="checkbox" ${system.tested ? 'checked' : ''} onchange="updateVoiceSystem(${system.id}, 'tested', this.checked)"></td>
             <td class="checkbox-cell"><input type="checkbox" ${system.cutover_completed ? 'checked' : ''} onchange="updateVoiceSystem(${system.id}, 'cutover_completed', this.checked)"></td>

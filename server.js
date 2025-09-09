@@ -767,7 +767,9 @@ app.get('/api/voice-systems/export', async (req, res) => {
       { field: 'customer', header: 'Customer' },
       { field: 'vm_name', header: 'VM Name' },
       { field: 'system_type', header: 'System Type' },
-      { field: 'extension_count', header: 'Extension Count' }
+      { field: 'extension_count', header: 'Extension Count' },
+      { field: 'sip_provider', header: 'SIP Provider' },
+      { field: 'sip_delivery_method', header: 'SIP Delivery Method' }
     ];
     
     const csvData = convertToCSV(voiceSystems, columns);
