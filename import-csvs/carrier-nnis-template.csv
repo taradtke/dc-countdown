@@ -1,0 +1,4 @@
+NNI ID,Provider,Type,Bandwidth,Location
+NNI-001,AT&T,10G Ethernet,10 Gbps,Dallas Meet-Me Room
+NNI-002,Verizon,1G Ethernet,1 Gbps,Chicago Cross Connect
+NNI-003,Level3,10G Ethernet,10 Gbps,New York Cage A15

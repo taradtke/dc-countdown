@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:3000/api';
+// Use relative URL to work with any protocol and domain
+const API_URL = '/api';
 
 const migrationItems = [
     { id: 'servers', quantity: 240, unit: 'server' },
@@ -19,6 +20,47 @@ async function loadStats() {
     } catch (error) {
         console.error('Error loading stats:', error);
     }
+}
+
+async function loadLeaderboard() {
+    try {
+        const leaderboard = await fetch(`${API_URL}/leaderboard`).then(r => r.json());
+        displayLeaderboard(leaderboard);
+    } catch (error) {
+        console.error('Error loading leaderboard:', error);
+    }
+}
+
+function displayLeaderboard(leaderboard) {
+    const container = document.getElementById('leaderboard-content');
+    if (!container) return;
+    
+    if (!leaderboard || leaderboard.length === 0) {
+        container.innerHTML = '<p>No completion data available yet.</p>';
+        container.classList.remove('loading');
+        return;
+    }
+    
+    // Show top 5 engineers
+    const topEngineers = leaderboard.slice(0, 5);
+    
+    let html = '<div class="leaderboard-list">';
+    topEngineers.forEach((engineer, index) => {
+        const position = index + 1;
+        const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : '';
+        
+        html += `
+            <div class="leaderboard-item">
+                <span class="position">${position}${medal}</span>
+                <span class="engineer-name">${engineer.name}</span>
+                <span class="completed-count">${engineer.completedCount} completed</span>
+            </div>
+        `;
+    });
+    html += '</div>';
+    
+    container.innerHTML = html;
+    container.classList.remove('loading');
 }
 
 function updateItemQuantities(stats) {
@@ -242,6 +284,9 @@ function updateCountdown() {
 
 loadStats();
 setInterval(loadStats, 30000);
+
+loadLeaderboard();
+setInterval(loadLeaderboard, 60000); // Update leaderboard every minute
 
 updateCountdown();
 setInterval(updateCountdown, 1000);

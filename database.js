@@ -169,25 +169,80 @@ class Database {
 
   importServers(servers) {
     return new Promise((resolve, reject) => {
+      console.log(`Preparing to import ${servers.length} servers`);
+      
       const stmt = this.db.prepare(`
         INSERT INTO servers (customer, vm_name, host, ip_addresses, cores, memory_capacity, storage_used_gib, storage_provisioned_gib)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `);
+      
+      if (!stmt) {
+        console.error('Failed to prepare statement - stmt is undefined');
+        reject(new Error('Failed to prepare statement'));
+        return;
+      }
 
-      servers.forEach(server => {
+      let successCount = 0;
+      let errorCount = 0;
+
+      servers.forEach((server, index) => {
+        const customer = server['Customer'] || server.customer || '';
+        const vmName = server['VM Name'] || server.vm_name || '';
+        const host = server['Host'] || server.host || '';
+        const ipAddresses = server['IP Addresses'] || server.ip_addresses || '';
+        const cores = parseInt(server['Cores'] || server.cores) || 0;
+        const memory = parseInt(server['Memory Capacity'] || server.memory_capacity) || 0;
+        const storageUsed = parseFloat(server['Storage Used (GiB)'] || server.storage_used_gib) || 0;
+        const storageProvisioned = parseFloat(server['Storage Provisioned (GiB)'] || server.storage_provisioned_gib) || 0;
+        
+        if (index === 0) {
+          console.log('First server insert:', {
+            customer,
+            vmName,
+            host,
+            ipAddresses,
+            cores,
+            memory,
+            storageUsed,
+            storageProvisioned
+          });
+        }
+        
         stmt.run(
-          server['Customer'] || server.customer,
-          server['VM Name'] || server.vm_name,
-          server['Host'] || server.host,
-          server['IP Addresses'] || server.ip_addresses,
-          server['Cores'] || server.cores,
-          server['Memory Capacity'] || server.memory_capacity,
-          server['Storage Used (GiB)'] || server.storage_used_gib,
-          server['Storage Provisioned (GiB)'] || server.storage_provisioned_gib
+          customer,
+          vmName,
+          host,
+          ipAddresses,
+          cores,
+          memory,
+          storageUsed,
+          storageProvisioned,
+          function(err) {
+            if (err) {
+              errorCount++;
+              console.error('Error inserting server:', err);
+              console.error('Data:', {
+                customer,
+                vmName,
+                host,
+                ipAddresses,
+                cores,
+                memory,
+                storageUsed,
+                storageProvisioned
+              });
+            } else {
+              successCount++;
+              if (successCount === 1) {
+                console.log('First server inserted successfully');
+              }
+            }
+          }
         );
       });
 
       stmt.finalize(err => {
+        console.log(`Import complete. Success: ${successCount}, Errors: ${errorCount}`);
         if (err) reject(err);
         else resolve();
       });

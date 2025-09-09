@@ -1,0 +1,4 @@
+VLAN ID,Name,Description,Network,Gateway
+100,Production,Production Network,192.168.100.0/24,192.168.100.1
+200,Development,Development Network,192.168.200.0/24,192.168.200.1
+300,DMZ,DMZ Network,10.0.0.0/24,10.0.0.1

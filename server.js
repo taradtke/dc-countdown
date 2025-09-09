@@ -36,23 +36,65 @@ app.get('/api/servers', async (req, res) => {
 });
 
 app.post('/api/servers/import', upload.single('csv'), async (req, res) => {
+  console.log('Import request received');
+  console.log('File info:', req.file ? {
+    fieldname: req.file.fieldname,
+    originalname: req.file.originalname,
+    encoding: req.file.encoding,
+    mimetype: req.file.mimetype,
+    size: req.file.size,
+    path: req.file.path
+  } : 'No file');
+  
   if (!req.file) {
+    console.error('No file uploaded in request');
     return res.status(400).json({ error: 'No file uploaded' });
   }
 
   const results = [];
+  let rowCount = 0;
   
   fs.createReadStream(req.file.path)
-    .pipe(csv())
-    .on('data', (data) => results.push(data))
+    .pipe(csv({
+      mapHeaders: ({ header }) => header.replace(/^\uFEFF/, '').trim() // Remove BOM and trim whitespace
+    }))
+    .on('data', (data) => {
+      rowCount++;
+      if (rowCount <= 2) {
+        console.log(`Row ${rowCount}:`, data);
+      }
+      results.push(data);
+    })
     .on('end', async () => {
       try {
+        console.log(`Importing ${results.length} servers...`);
+        if (results.length > 0) {
+          console.log('First row keys:', Object.keys(results[0]));
+        }
         await db.importServers(results);
         fs.unlinkSync(req.file.path);
+        console.log('Import successful!');
         res.json({ message: 'Servers imported successfully', count: results.length });
       } catch (error) {
+        console.error('Import database error:', error.message);
+        console.error('Stack trace:', error.stack);
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (e) {
+          console.error('Failed to delete temp file:', e.message);
+        }
         res.status(500).json({ error: error.message });
       }
+    })
+    .on('error', (error) => {
+      console.error('CSV parsing error:', error.message);
+      console.error('Stack trace:', error.stack);
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {
+        console.error('Failed to delete temp file:', e.message);
+      }
+      res.status(500).json({ error: 'Failed to parse CSV: ' + error.message });
     });
 });
 
@@ -91,7 +133,9 @@ app.post('/api/vlans/import', upload.single('csv'), async (req, res) => {
   const results = [];
   
   fs.createReadStream(req.file.path)
-    .pipe(csv())
+    .pipe(csv({
+      mapHeaders: ({ header }) => header.replace(/^\uFEFF/, '').trim() // Remove BOM and trim whitespace
+    }))
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       try {
@@ -139,7 +183,9 @@ app.post('/api/networks/import', upload.single('csv'), async (req, res) => {
   const results = [];
   
   fs.createReadStream(req.file.path)
-    .pipe(csv())
+    .pipe(csv({
+      mapHeaders: ({ header }) => header.replace(/^\uFEFF/, '').trim() // Remove BOM and trim whitespace
+    }))
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       try {
@@ -187,7 +233,9 @@ app.post('/api/voice-systems/import', upload.single('csv'), async (req, res) => 
   const results = [];
   
   fs.createReadStream(req.file.path)
-    .pipe(csv())
+    .pipe(csv({
+      mapHeaders: ({ header }) => header.replace(/^\uFEFF/, '').trim() // Remove BOM and trim whitespace
+    }))
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       try {
@@ -235,7 +283,9 @@ app.post('/api/colo-customers/import', upload.single('csv'), async (req, res) =>
   const results = [];
   
   fs.createReadStream(req.file.path)
-    .pipe(csv())
+    .pipe(csv({
+      mapHeaders: ({ header }) => header.replace(/^\uFEFF/, '').trim() // Remove BOM and trim whitespace
+    }))
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       try {
@@ -283,7 +333,9 @@ app.post('/api/carrier-circuits/import', upload.single('csv'), async (req, res) 
   const results = [];
   
   fs.createReadStream(req.file.path)
-    .pipe(csv())
+    .pipe(csv({
+      mapHeaders: ({ header }) => header.replace(/^\uFEFF/, '').trim() // Remove BOM and trim whitespace
+    }))
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       try {
@@ -331,7 +383,9 @@ app.post('/api/public-networks/import', upload.single('csv'), async (req, res) =
   const results = [];
   
   fs.createReadStream(req.file.path)
-    .pipe(csv())
+    .pipe(csv({
+      mapHeaders: ({ header }) => header.replace(/^\uFEFF/, '').trim() // Remove BOM and trim whitespace
+    }))
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       try {
@@ -452,7 +506,9 @@ app.post('/api/critical-items/import', upload.single('csv'), async (req, res) =>
   const results = [];
   
   fs.createReadStream(req.file.path)
-    .pipe(csv())
+    .pipe(csv({
+      mapHeaders: ({ header }) => header.replace(/^\uFEFF/, '').trim() // Remove BOM and trim whitespace
+    }))
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       try {
@@ -500,7 +556,9 @@ app.post('/api/carrier-nnis/import', upload.single('csv'), async (req, res) => {
   const results = [];
   
   fs.createReadStream(req.file.path)
-    .pipe(csv())
+    .pipe(csv({
+      mapHeaders: ({ header }) => header.replace(/^\uFEFF/, '').trim() // Remove BOM and trim whitespace
+    }))
     .on('data', (data) => results.push(data))
     .on('end', async () => {
       try {
@@ -613,6 +671,189 @@ app.delete('/api/customers/:customerId/assets/:assetType/:assetId', async (req, 
       req.params.assetId
     );
     res.json({ message: 'Asset unlinked from customer successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// CSV Export helper function
+function convertToCSV(data, columns) {
+  if (!data || data.length === 0) {
+    return '';
+  }
+  
+  const header = columns.map(c => c.header).join(',');
+  const rows = data.map(row => {
+    return columns.map(col => {
+      const value = row[col.field] || '';
+      // Escape values containing commas, quotes, or newlines
+      if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+        return `"${value.replace(/"/g, '""')}"`;
+      }
+      return value;
+    }).join(',');
+  });
+  
+  return [header, ...rows].join('\n');
+}
+
+// Export endpoints for all asset types
+app.get('/api/servers/export', async (req, res) => {
+  try {
+    const servers = await db.getServers();
+    const columns = [
+      { field: 'customer', header: 'Customer' },
+      { field: 'vm_name', header: 'VM Name' },
+      { field: 'host', header: 'Host' },
+      { field: 'ip_addresses', header: 'IP Addresses' },
+      { field: 'cores', header: 'Cores' },
+      { field: 'memory_capacity', header: 'Memory Capacity' },
+      { field: 'storage_used_gib', header: 'Storage Used (GiB)' },
+      { field: 'storage_provisioned_gib', header: 'Storage Provisioned (GiB)' }
+    ];
+    
+    const csvData = convertToCSV(servers, columns);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="servers_export.csv"');
+    res.send(csvData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/vlans/export', async (req, res) => {
+  try {
+    const vlans = await db.getVlans();
+    const columns = [
+      { field: 'vlan_id', header: 'VLAN ID' },
+      { field: 'name', header: 'Name' },
+      { field: 'description', header: 'Description' },
+      { field: 'network', header: 'Network' },
+      { field: 'gateway', header: 'Gateway' }
+    ];
+    
+    const csvData = convertToCSV(vlans, columns);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="vlans_export.csv"');
+    res.send(csvData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/networks/export', async (req, res) => {
+  try {
+    const networks = await db.getNetworks();
+    const columns = [
+      { field: 'network_name', header: 'Network Name' },
+      { field: 'provider', header: 'Provider' },
+      { field: 'circuit_id', header: 'Circuit ID' },
+      { field: 'bandwidth', header: 'Bandwidth' }
+    ];
+    
+    const csvData = convertToCSV(networks, columns);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="networks_export.csv"');
+    res.send(csvData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/voice-systems/export', async (req, res) => {
+  try {
+    const voiceSystems = await db.getVoiceSystems();
+    const columns = [
+      { field: 'customer', header: 'Customer' },
+      { field: 'vm_name', header: 'VM Name' },
+      { field: 'system_type', header: 'System Type' },
+      { field: 'extension_count', header: 'Extension Count' }
+    ];
+    
+    const csvData = convertToCSV(voiceSystems, columns);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="voice_systems_export.csv"');
+    res.send(csvData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/colo-customers/export', async (req, res) => {
+  try {
+    const coloCustomers = await db.getColoCustomers();
+    const columns = [
+      { field: 'customer_name', header: 'Customer Name' },
+      { field: 'rack_location', header: 'Rack Location' },
+      { field: 'new_cabinet_number', header: 'New Cabinet Number' },
+      { field: 'equipment_count', header: 'Equipment Count' },
+      { field: 'power_usage', header: 'Power Usage' }
+    ];
+    
+    const csvData = convertToCSV(coloCustomers, columns);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="colo_customers_export.csv"');
+    res.send(csvData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/carrier-circuits/export', async (req, res) => {
+  try {
+    const circuits = await db.getCarrierCircuits();
+    const columns = [
+      { field: 'circuit_id', header: 'Circuit ID' },
+      { field: 'provider', header: 'Provider' },
+      { field: 'type', header: 'Type' },
+      { field: 'bandwidth', header: 'Bandwidth' },
+      { field: 'location_a', header: 'Location A' },
+      { field: 'location_z', header: 'Location Z' }
+    ];
+    
+    const csvData = convertToCSV(circuits, columns);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="carrier_circuits_export.csv"');
+    res.send(csvData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/public-networks/export', async (req, res) => {
+  try {
+    const networks = await db.getPublicNetworks();
+    const columns = [
+      { field: 'network_name', header: 'Network Name' },
+      { field: 'cidr', header: 'CIDR' },
+      { field: 'provider', header: 'Provider' },
+      { field: 'gateway', header: 'Gateway' }
+    ];
+    
+    const csvData = convertToCSV(networks, columns);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="public_networks_export.csv"');
+    res.send(csvData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/carrier-nnis/export', async (req, res) => {
+  try {
+    const nnis = await db.getCarrierNnis();
+    const columns = [
+      { field: 'nni_id', header: 'NNI ID' },
+      { field: 'provider', header: 'Provider' },
+      { field: 'type', header: 'Type' },
+      { field: 'bandwidth', header: 'Bandwidth' },
+      { field: 'location', header: 'Location' }
+    ];
+    
+    const csvData = convertToCSV(nnis, columns);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="carrier_nnis_export.csv"');
+    res.send(csvData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -1,0 +1,4 @@
+Network Name,Provider,Circuit ID,Bandwidth
+Primary Internet,AT&T,ATT-12345,1000 Mbps
+Backup Internet,Spectrum,SPEC-67890,500 Mbps
+MPLS Network,Verizon,VZ-11111,100 Mbps

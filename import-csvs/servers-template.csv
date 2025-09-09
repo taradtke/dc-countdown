@@ -1,0 +1,4 @@
+Customer,VM Name,Host,IP Addresses,Cores,Memory Capacity,Storage Used (GiB),Storage Provisioned (GiB)
+Example Corp,web-server-01,Nutanix,192.168.1.10,4,16,250,500
+Example Corp,db-server-01,VMWare,192.168.1.20 | 192.168.1.21,8,32,1000,2000
+Another Company,app-server-01,Nutanix,10.0.0.50,2,8,100,200

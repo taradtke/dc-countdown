@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSV Upload Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background: #f5f5f5;
+        }
+        .error {
+            color: red;
+            background: #ffeeee;
+            border-color: #ff0000;
+        }
+        .success {
+            color: green;
+            background: #eeffee;
+            border-color: #00ff00;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+        #log {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSV Upload Test Page</h1>
+    
+    <div>
+        <label>Select CSV File:</label><br>
+        <input type="file" id="csvFile" accept=".csv"><br>
+        <button onclick="uploadFile()">Upload via Fetch API</button>
+        <button onclick="uploadFileXHR()">Upload via XMLHttpRequest</button>
+        <button onclick="uploadFileForm()">Upload via Form Submit</button>
+    </div>
+    
+    <div id="result" class="result" style="display:none;"></div>
+    
+    <h3>Console Log:</h3>
+    <div id="log"></div>
+    
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toISOString().substr(11, 8);
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function showResult(message, isError = false) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result ' + (isError ? 'error' : 'success');
+            resultDiv.textContent = message;
+        }
+        
+        async function uploadFile() {
+            const fileInput = document.getElementById('csvFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showResult('Please select a file', true);
+                return;
+            }
+            
+            log('Starting upload via Fetch API...');
+            log(`File: ${file.name}, Size: ${file.size} bytes`);
+            
+            const formData = new FormData();
+            formData.append('csv', file);
+            
+            try {
+                log('Sending request to /api/servers/import');
+                const response = await fetch('/api/servers/import', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                log(`Response status: ${response.status}`);
+                const result = await response.text();
+                log(`Response: ${result}`);
+                
+                if (response.ok) {
+                    showResult('Success: ' + result);
+                } else {
+                    showResult('Error: ' + result, true);
+                }
+            } catch (error) {
+                log(`Error: ${error.message}`);
+                showResult('Network error: ' + error.message, true);
+            }
+        }
+        
+        function uploadFileXHR() {
+            const fileInput = document.getElementById('csvFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showResult('Please select a file', true);
+                return;
+            }
+            
+            log('Starting upload via XMLHttpRequest...');
+            log(`File: ${file.name}, Size: ${file.size} bytes`);
+            
+            const formData = new FormData();
+            formData.append('csv', file);
+            
+            const xhr = new XMLHttpRequest();
+            
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percent = (e.loaded / e.total) * 100;
+                    log(`Upload progress: ${percent.toFixed(1)}%`);
+                }
+            };
+            
+            xhr.onload = function() {
+                log(`Response status: ${xhr.status}`);
+                log(`Response: ${xhr.responseText}`);
+                
+                if (xhr.status === 200) {
+                    showResult('Success: ' + xhr.responseText);
+                } else {
+                    showResult('Error: ' + xhr.responseText, true);
+                }
+            };
+            
+            xhr.onerror = function() {
+                log('XHR Error occurred');
+                showResult('Network error', true);
+            };
+            
+            log('Sending request to /api/servers/import');
+            xhr.open('POST', '/api/servers/import');
+            xhr.send(formData);
+        }
+        
+        function uploadFileForm() {
+            const fileInput = document.getElementById('csvFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showResult('Please select a file', true);
+                return;
+            }
+            
+            log('Creating hidden form for submission...');
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/api/servers/import';
+            form.enctype = 'multipart/form-data';
+            form.target = 'upload-frame';
+            
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.name = 'csv';
+            input.files = fileInput.files;
+            
+            form.appendChild(input);
+            
+            const iframe = document.createElement('iframe');
+            iframe.name = 'upload-frame';
+            iframe.style.display = 'none';
+            iframe.onload = function() {
+                try {
+                    const content = iframe.contentDocument.body.textContent;
+                    log('Form submission response: ' + content);
+                    showResult('Response: ' + content);
+                } catch (e) {
+                    log('Could not read iframe content: ' + e.message);
+                }
+                document.body.removeChild(iframe);
+                document.body.removeChild(form);
+            };
+            
+            document.body.appendChild(iframe);
+            document.body.appendChild(form);
+            
+            log('Submitting form...');
+            form.submit();
+        }
+        
+        log('Test page loaded');
+        log('Ready to test file uploads');
+    </script>
+</body>
+</html>

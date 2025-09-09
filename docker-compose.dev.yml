@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   app:
@@ -18,6 +17,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3000
+      - DB_PATH=/usr/src/app/data/migration.db
     restart: unless-stopped
     command: nodemon --watch . --ext js,json,html,css --ignore '*.db' --ignore 'uploads/*' server.js
     networks:

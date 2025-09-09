@@ -1,0 +1,4 @@
+Circuit ID,Provider,Type,Bandwidth,Location A,Location Z
+CKT-001,AT&T,MPLS,100 Mbps,Dallas DC,Houston DC
+CKT-002,Verizon,P2P,1 Gbps,New York DC,Chicago DC
+CKT-003,CenturyLink,Internet,500 Mbps,Phoenix DC,Internet

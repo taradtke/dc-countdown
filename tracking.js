@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:3000/api';
+// Use relative URL to work with any protocol and domain
+const API_URL = '/api';
 let currentTab = 'servers';
 let currentEditItem = null;
 let currentEditType = null;
@@ -77,6 +78,8 @@ function setupEventListeners() {
     document.getElementById('import-btn').addEventListener('click', () => {
         document.getElementById('csv-upload').click();
     });
+    
+    document.getElementById('export-btn').addEventListener('click', handleExport);
     
     document.getElementById('csv-upload').addEventListener('change', handleFileUpload);
     document.getElementById('refresh-btn').addEventListener('click', loadData);
@@ -934,6 +937,70 @@ async function updateItem(type, id, data) {
     } catch (error) {
         console.error('Error updating item:', error);
         alert('Failed to update item');
+    }
+}
+
+async function handleExport() {
+    let endpoint = '';
+    let filename = '';
+    
+    switch(currentTab) {
+        case 'servers': 
+            endpoint = 'servers/export';
+            filename = 'servers_export.csv';
+            break;
+        case 'vlans': 
+            endpoint = 'vlans/export';
+            filename = 'vlans_export.csv';
+            break;
+        case 'circuits': 
+            endpoint = 'carrier-circuits/export';
+            filename = 'carrier_circuits_export.csv';
+            break;
+        case 'nnis': 
+            endpoint = 'carrier-nnis/export';
+            filename = 'carrier_nnis_export.csv';
+            break;
+        case 'public-networks': 
+            endpoint = 'public-networks/export';
+            filename = 'public_networks_export.csv';
+            break;
+        case 'networks': 
+            endpoint = 'networks/export';
+            filename = 'networks_export.csv';
+            break;
+        case 'voice': 
+            endpoint = 'voice-systems/export';
+            filename = 'voice_systems_export.csv';
+            break;
+        case 'colo': 
+            endpoint = 'colo-customers/export';
+            filename = 'colo_customers_export.csv';
+            break;
+        default:
+            alert('Export not available for this tab');
+            return;
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/${endpoint}`);
+        
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } else {
+            alert('Failed to export data');
+        }
+    } catch (error) {
+        console.error('Export error:', error);
+        alert('Failed to export data');
     }
 }
 
