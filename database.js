@@ -112,47 +112,95 @@ class Database {
   getStats() {
     return new Promise((resolve, reject) => {
       const stats = {};
+      let completedQueries = 0;
+      const totalQueries = 8; // Number of queries we'll run
+      
+      const checkComplete = () => {
+        completedQueries++;
+        if (completedQueries === totalQueries) {
+          resolve(stats);
+        }
+      };
       
       this.db.serialize(() => {
+        // Servers
         this.db.get("SELECT COUNT(*) as total, SUM(CASE WHEN customer_notified_successful_cutover = 1 THEN 1 ELSE 0 END) as completed FROM servers", (err, row) => {
           if (err) return reject(err);
           stats.servers = { total: row.total, completed: row.completed, remaining: row.total - row.completed };
+          checkComplete();
         });
 
+        // VLANs
         this.db.get("SELECT COUNT(*) as total, SUM(CASE WHEN migrated = 1 AND verified = 1 THEN 1 ELSE 0 END) as completed FROM vlans", (err, row) => {
           if (err) return reject(err);
           stats.vlans = { total: row.total, completed: row.completed, remaining: row.total - row.completed };
+          checkComplete();
         });
 
+        // Networks
         this.db.get("SELECT COUNT(*) as total, SUM(CASE WHEN cutover_completed = 1 THEN 1 ELSE 0 END) as completed FROM networks", (err, row) => {
           if (err) return reject(err);
           stats.networks = { total: row.total, completed: row.completed, remaining: row.total - row.completed };
+          checkComplete();
         });
 
+        // Voice Systems
         this.db.get("SELECT COUNT(*) as total, SUM(CASE WHEN cutover_completed = 1 THEN 1 ELSE 0 END) as completed FROM voice_systems", (err, row) => {
           if (err) return reject(err);
           stats.voiceSystems = { total: row.total, completed: row.completed, remaining: row.total - row.completed };
+          checkComplete();
         });
 
+        // Colo Customers
         this.db.get("SELECT COUNT(*) as total, SUM(CASE WHEN migration_completed = 1 THEN 1 ELSE 0 END) as completed FROM colo_customers", (err, row) => {
           if (err) return reject(err);
           stats.coloCustomers = { total: row.total, completed: row.completed, remaining: row.total - row.completed };
+          checkComplete();
         });
 
-        this.db.get("SELECT COUNT(*) as total, SUM(CASE WHEN cutover_completed = 1 THEN 1 ELSE 0 END) as completed FROM carrier_circuits", (err, row) => {
+        // Check if carrier_circuits table exists, otherwise set default values
+        this.db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='carrier_circuits'", (err, row) => {
           if (err) return reject(err);
-          stats.carrierCircuits = { total: row.total || 0, completed: row.completed || 0, remaining: (row.total || 0) - (row.completed || 0) };
+          if (row) {
+            this.db.get("SELECT COUNT(*) as total, SUM(CASE WHEN cutover_completed = 1 THEN 1 ELSE 0 END) as completed FROM carrier_circuits", (err, row) => {
+              if (err) return reject(err);
+              stats.carrierCircuits = { total: row.total || 0, completed: row.completed || 0, remaining: (row.total || 0) - (row.completed || 0) };
+              checkComplete();
+            });
+          } else {
+            stats.carrierCircuits = { total: 0, completed: 0, remaining: 0 };
+            checkComplete();
+          }
         });
 
-        this.db.get("SELECT COUNT(*) as total, SUM(CASE WHEN cutover_completed = 1 THEN 1 ELSE 0 END) as completed FROM public_networks", (err, row) => {
+        // Check if public_networks table exists, otherwise set default values
+        this.db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='public_networks'", (err, row) => {
           if (err) return reject(err);
-          stats.publicNetworks = { total: row.total || 0, completed: row.completed || 0, remaining: (row.total || 0) - (row.completed || 0) };
+          if (row) {
+            this.db.get("SELECT COUNT(*) as total, SUM(CASE WHEN cutover_completed = 1 THEN 1 ELSE 0 END) as completed FROM public_networks", (err, row) => {
+              if (err) return reject(err);
+              stats.publicNetworks = { total: row.total || 0, completed: row.completed || 0, remaining: (row.total || 0) - (row.completed || 0) };
+              checkComplete();
+            });
+          } else {
+            stats.publicNetworks = { total: 0, completed: 0, remaining: 0 };
+            checkComplete();
+          }
         });
         
-        this.db.get("SELECT COUNT(*) as total, SUM(CASE WHEN cutover_completed = 1 THEN 1 ELSE 0 END) as completed FROM carrier_nnis", (err, row) => {
+        // Check if carrier_nnis table exists, otherwise set default values
+        this.db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='carrier_nnis'", (err, row) => {
           if (err) return reject(err);
-          stats.carrierNnis = { total: row.total || 0, completed: row.completed || 0, remaining: (row.total || 0) - (row.completed || 0) };
-          resolve(stats);
+          if (row) {
+            this.db.get("SELECT COUNT(*) as total, SUM(CASE WHEN cutover_completed = 1 THEN 1 ELSE 0 END) as completed FROM carrier_nnis", (err, row) => {
+              if (err) return reject(err);
+              stats.carrierNnis = { total: row.total || 0, completed: row.completed || 0, remaining: (row.total || 0) - (row.completed || 0) };
+              checkComplete();
+            });
+          } else {
+            stats.carrierNnis = { total: 0, completed: 0, remaining: 0 };
+            checkComplete();
+          }
         });
       });
     });
@@ -1030,9 +1078,28 @@ class Database {
   }
 
   async getLeaderboard() {
-    const queries = [
-      // Servers
-      {
+    // First check which tables exist
+    const tableExistsQueries = [
+      'servers', 'vlans', 'networks', 'voice_systems', 'colo_customers', 
+      'carrier_circuits', 'public_networks', 'critical_items', 'carrier_nnis'
+    ];
+    
+    const existingTables = {};
+    for (const table of tableExistsQueries) {
+      const result = await new Promise((resolve, reject) => {
+        this.db.get("SELECT name FROM sqlite_master WHERE type='table' AND name=?", [table], (err, row) => {
+          if (err) reject(err);
+          else resolve(!!row);
+        });
+      });
+      existingTables[table] = result;
+    }
+
+    const queries = [];
+    
+    // Only add queries for tables that exist
+    if (existingTables.servers) {
+      queries.push({
         type: 'servers',
         query: `
           SELECT 
@@ -1044,9 +1111,11 @@ class Database {
           WHERE engineer_completed_work IS NOT NULL AND engineer_completed_work != ''
           GROUP BY engineer_completed_work
         `
-      },
-      // VLANs
-      {
+      });
+    }
+
+    if (existingTables.vlans) {
+      queries.push({
         type: 'vlans',
         query: `
           SELECT 
@@ -1058,37 +1127,27 @@ class Database {
           WHERE engineer_completed_work IS NOT NULL AND engineer_completed_work != ''
           GROUP BY engineer_completed_work
         `
-      },
-      // Carrier Circuits
-      {
-        type: 'carrier_circuits',
+      });
+    }
+
+    if (existingTables.networks) {
+      queries.push({
+        type: 'networks',
         query: `
           SELECT 
             engineer_completed_work as engineer,
             COUNT(*) as assigned,
-            SUM(CASE WHEN migrated = 1 THEN 1 ELSE 0 END) as planned,
+            SUM(CASE WHEN cutover_completed = 1 THEN 1 ELSE 0 END) as planned,
             SUM(CASE WHEN cutover_completed = 1 THEN 1 ELSE 0 END) as completed
-          FROM carrier_circuits 
+          FROM networks 
           WHERE engineer_completed_work IS NOT NULL AND engineer_completed_work != ''
           GROUP BY engineer_completed_work
         `
-      },
-      // Public Networks
-      {
-        type: 'public_networks',
-        query: `
-          SELECT 
-            engineer_completed_work as engineer,
-            COUNT(*) as assigned,
-            SUM(CASE WHEN migrated = 1 THEN 1 ELSE 0 END) as planned,
-            SUM(CASE WHEN cutover_completed = 1 THEN 1 ELSE 0 END) as completed
-          FROM public_networks 
-          WHERE engineer_completed_work IS NOT NULL AND engineer_completed_work != ''
-          GROUP BY engineer_completed_work
-        `
-      },
-      // Voice Systems
-      {
+      });
+    }
+
+    if (existingTables.voice_systems) {
+      queries.push({
         type: 'voice_systems',
         query: `
           SELECT 
@@ -1100,9 +1159,11 @@ class Database {
           WHERE engineer_completed_work IS NOT NULL AND engineer_completed_work != ''
           GROUP BY engineer_completed_work
         `
-      },
-      // Colo Customers
-      {
+      });
+    }
+
+    if (existingTables.colo_customers) {
+      queries.push({
         type: 'colo_customers',
         query: `
           SELECT 
@@ -1114,9 +1175,43 @@ class Database {
           WHERE engineer_completed_work IS NOT NULL AND engineer_completed_work != ''
           GROUP BY engineer_completed_work
         `
-      },
-      // Critical Items
-      {
+      });
+    }
+
+    if (existingTables.carrier_circuits) {
+      queries.push({
+        type: 'carrier_circuits',
+        query: `
+          SELECT 
+            engineer_completed_work as engineer,
+            COUNT(*) as assigned,
+            SUM(CASE WHEN migrated = 1 THEN 1 ELSE 0 END) as planned,
+            SUM(CASE WHEN cutover_completed = 1 THEN 1 ELSE 0 END) as completed
+          FROM carrier_circuits 
+          WHERE engineer_completed_work IS NOT NULL AND engineer_completed_work != ''
+          GROUP BY engineer_completed_work
+        `
+      });
+    }
+
+    if (existingTables.public_networks) {
+      queries.push({
+        type: 'public_networks',
+        query: `
+          SELECT 
+            engineer_completed_work as engineer,
+            COUNT(*) as assigned,
+            SUM(CASE WHEN migrated = 1 THEN 1 ELSE 0 END) as planned,
+            SUM(CASE WHEN cutover_completed = 1 THEN 1 ELSE 0 END) as completed
+          FROM public_networks 
+          WHERE engineer_completed_work IS NOT NULL AND engineer_completed_work != ''
+          GROUP BY engineer_completed_work
+        `
+      });
+    }
+
+    if (existingTables.critical_items) {
+      queries.push({
         type: 'critical_items',
         query: `
           SELECT 
@@ -1128,8 +1223,8 @@ class Database {
           WHERE assigned_engineer IS NOT NULL AND assigned_engineer != ''
           GROUP BY assigned_engineer
         `
-      }
-    ];
+      });
+    }
 
     const leaderboard = {};
 
@@ -1145,6 +1240,8 @@ class Database {
         if (!leaderboard[row.engineer]) {
           leaderboard[row.engineer] = {
             engineer: row.engineer,
+            name: row.engineer, // Add name field for compatibility
+            completedCount: 0, // Add completedCount field for compatibility
             total_assigned: 0,
             total_planned: 0,
             total_completed: 0,
@@ -1152,13 +1249,14 @@ class Database {
           };
         }
 
-        leaderboard[row.engineer].total_assigned += row.assigned;
-        leaderboard[row.engineer].total_planned += row.planned;
-        leaderboard[row.engineer].total_completed += row.completed;
+        leaderboard[row.engineer].total_assigned += row.assigned || 0;
+        leaderboard[row.engineer].total_planned += row.planned || 0;
+        leaderboard[row.engineer].total_completed += row.completed || 0;
+        leaderboard[row.engineer].completedCount = leaderboard[row.engineer].total_completed;
         leaderboard[row.engineer].by_type[type] = {
-          assigned: row.assigned,
-          planned: row.planned,
-          completed: row.completed
+          assigned: row.assigned || 0,
+          planned: row.planned || 0,
+          completed: row.completed || 0
         };
       }
     }
