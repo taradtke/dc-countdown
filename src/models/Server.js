@@ -9,20 +9,20 @@ class Server extends BaseModel {
       host: 'string',
       ip_addresses: 'string',
       cores: 'integer',
-      memory_capacity: 'string',
-      storage_used_gb: 'number',
-      storage_provisioned_gb: 'number',
-      migration_method: 'string',
-      migration_date: 'date',
-      cutover_date: 'date',
-      testing_status: 'string',
-      testing_details: 'string',
-      migration_wave: 'integer',
-      notes: 'text',
-      assigned_engineer: 'string',
-      migration_completed: 'boolean',
-      customer_notified: 'boolean',
+      memory_capacity: 'number',
+      storage_used_gib: 'number',
+      storage_provisioned_gib: 'number',
+      cutover_scheduled: 'boolean',
+      cutover_scheduled_date: 'date',
+      cutover_completed: 'boolean',
+      cutover_completed_date: 'date',
+      customer_notified_scheduled: 'boolean',
+      customer_notified_scheduled_date: 'date',
       customer_notified_successful_cutover: 'boolean',
+      customer_notified_successful_cutover_date: 'date',
+      customer_signoff: 'boolean',
+      assigned_engineer: 'string',
+      notes: 'text',
       created_at: 'datetime',
       updated_at: 'datetime'
     });
@@ -55,10 +55,10 @@ class Server extends BaseModel {
 
   async markAsCompleted(id) {
     return this.update(id, {
-      migration_completed: true,
-      customer_notified: true,
+      cutover_completed: true,
+      customer_notified_scheduled: true,
       customer_notified_successful_cutover: true,
-      cutover_date: new Date().toISOString()
+      cutover_completed_date: new Date().toISOString().split('T')[0] // Date only
     });
   }
 
@@ -67,9 +67,9 @@ class Server extends BaseModel {
   }
 
   async updateTestingStatus(id, status, details = null) {
-    const updates = { testing_status: status };
+    const updates = { notes: `Testing Status: ${status}` };
     if (details) {
-      updates.testing_details = details;
+      updates.notes += ` - ${details}`;
     }
     return this.update(id, updates);
   }
@@ -78,10 +78,9 @@ class Server extends BaseModel {
     const stats = await this.queryOne(`
       SELECT 
         COUNT(*) as total,
-        SUM(CASE WHEN customer_notified_successful_cutover = 1 THEN 1 ELSE 0 END) as completed,
-        SUM(CASE WHEN migration_completed = 1 AND customer_notified_successful_cutover != 1 THEN 1 ELSE 0 END) as awaiting_notification,
-        SUM(CASE WHEN testing_status = 'in_progress' THEN 1 ELSE 0 END) as in_testing,
-        COUNT(DISTINCT migration_wave) as total_waves,
+        SUM(CASE WHEN customer_notified_successful_cutover = true THEN 1 ELSE 0 END) as completed,
+        SUM(CASE WHEN cutover_completed = true AND customer_notified_successful_cutover != true THEN 1 ELSE 0 END) as awaiting_notification,
+        SUM(CASE WHEN cutover_scheduled = true THEN 1 ELSE 0 END) as scheduled,
         COUNT(DISTINCT assigned_engineer) as engineers_assigned
       FROM servers
     `);
@@ -100,11 +99,11 @@ class Server extends BaseModel {
 
     return this.query(`
       SELECT * FROM servers
-      WHERE migration_date >= date('now')
-        AND migration_date <= date(?)
-        AND customer_notified_successful_cutover != 1
-      ORDER BY migration_date, migration_wave
-    `, [futureDate.toISOString()]);
+      WHERE cutover_scheduled_date >= CURRENT_DATE
+        AND cutover_scheduled_date <= ?
+        AND customer_notified_successful_cutover != true
+      ORDER BY cutover_scheduled_date, assigned_engineer
+    `, [futureDate.toISOString().split('T')[0]]);
   }
 
   async searchServers(searchTerm) {
@@ -137,9 +136,8 @@ class Server extends BaseModel {
         ip_addresses: row['IP Addresses'] || row.ip_addresses,
         cores: parseInt(row['Cores'] || row.cores) || 0,
         memory_capacity: row['Memory Capacity'] || row.memory_capacity,
-        storage_used_gb: parseFloat(row['Storage Used (GiB)'] || row.storage_used_gb) || 0,
-        storage_provisioned_gb: parseFloat(row['Storage Provisioned (GiB)'] || row.storage_provisioned_gb) || 0,
-        migration_wave: parseInt(row['Migration Wave'] || row.migration_wave) || 1,
+        storage_used_gib: parseFloat(row['Storage Used (GiB)'] || row.storage_used_gib) || 0,
+        storage_provisioned_gib: parseFloat(row['Storage Provisioned (GiB)'] || row.storage_provisioned_gib) || 0,
         assigned_engineer: row['Assigned Engineer'] || row.assigned_engineer || null
       };
     });
@@ -157,16 +155,13 @@ class Server extends BaseModel {
       'IP Addresses': server.ip_addresses,
       'Cores': server.cores,
       'Memory Capacity': server.memory_capacity,
-      'Storage Used (GiB)': server.storage_used_gb,
-      'Storage Provisioned (GiB)': server.storage_provisioned_gb,
-      'Migration Wave': server.migration_wave,
-      'Migration Method': server.migration_method,
-      'Migration Date': server.migration_date,
-      'Cutover Date': server.cutover_date,
-      'Testing Status': server.testing_status,
+      'Storage Used (GiB)': server.storage_used_gib,
+      'Storage Provisioned (GiB)': server.storage_provisioned_gib,
+      'Cutover Scheduled': server.cutover_scheduled ? 'Yes' : 'No',
+      'Cutover Date': server.cutover_completed_date,
       'Assigned Engineer': server.assigned_engineer,
-      'Migration Completed': server.migration_completed ? 'Yes' : 'No',
-      'Customer Notified': server.customer_notified ? 'Yes' : 'No',
+      'Cutover Completed': server.cutover_completed ? 'Yes' : 'No',
+      'Customer Notified Scheduled': server.customer_notified_scheduled ? 'Yes' : 'No',
       'Cutover Notified': server.customer_notified_successful_cutover ? 'Yes' : 'No',
       'Notes': server.notes
     }));

@@ -425,10 +425,13 @@ input[type="checkbox"] {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.6);
     z-index: 1000;
     align-items: center;
     justify-content: center;
+    padding: var(--spacing-lg);
+    box-sizing: border-box;
+    overflow-y: auto;
 }
 
 .modal.active {
@@ -437,14 +440,114 @@ input[type="checkbox"] {
 
 .modal-content {
     background: var(--tsr-white);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
-    max-width: 600px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-xl);
+    padding: 0;
+    max-width: 700px;
+    width: 100%;
+    max-height: calc(100vh - 2 * var(--spacing-lg));
+    height: auto;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
     animation: slideUp 0.3s ease;
+    border: 1px solid var(--tsr-gray-100);
+    margin: auto;
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-content h3 {
+    margin: 0;
+    padding: var(--spacing-xl);
+    background: linear-gradient(135deg, var(--tsr-primary-light) 0%, var(--tsr-primary-dark) 100%);
+    color: var(--tsr-white);
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex-shrink: 0; /* Don't let header shrink */
+}
+
+/* Ensure modal stays centered on mobile */
+@media (max-width: 768px) {
+    .modal {
+        padding: var(--spacing-sm);
+        align-items: flex-start;
+        padding-top: var(--spacing-lg);
+    }
+    
+    .modal-content {
+        max-width: 100%;
+        width: 100%;
+        max-height: calc(100vh - 2 * var(--spacing-lg));
+    }
+    
+    .form-actions .btn {
+        min-width: 100px;
+        padding: var(--spacing-md);
+    }
+}
+
+/* For very tall content, allow vertical scrolling while keeping horizontal centering */
+@media (max-height: 600px) {
+    .modal {
+        align-items: flex-start;
+        padding-top: var(--spacing-sm);
+    }
+    
+    .modal-content {
+        max-height: calc(100vh - var(--spacing-sm));
+    }
+}
+
+
+.modal-content .close {
+    position: absolute;
+    top: var(--spacing-lg);
+    right: var(--spacing-lg);
+    background: var(--tsr-gray-100);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    color: var(--tsr-gray-600);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.modal-content .close:hover {
+    background: var(--tsr-gray-200);
+    color: var(--tsr-gray-800);
+    transform: scale(1.05);
+}
+
+.modal-content h3 i {
+    font-size: 20px;
+    opacity: 0.9;
+}
+
+.modal-content form {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-form-content {
+    padding: var(--spacing-xl);
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0; /* Important for scrollable content */
+}
+
+#form-fields {
+    /* Form fields container - no special styling needed */
 }
 
 @keyframes slideUp {
@@ -497,31 +600,77 @@ input[type="checkbox"] {
 
 /* Form Styles */
 .form-group {
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+}
+
+@media (max-width: 640px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
 }
 
 .form-label {
     display: block;
-    margin-bottom: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
     color: var(--tsr-primary-dark);
-    font-weight: var(--font-medium);
+    font-weight: var(--font-semibold);
     font-size: var(--text-sm);
     letter-spacing: var(--tracking-wide);
     line-height: var(--leading-normal);
+    position: relative;
+}
+
+.form-label.required::after {
+    content: '*';
+    color: var(--tsr-error);
+    margin-left: 4px;
+    font-weight: bold;
+}
+
+.form-hint {
+    display: block;
+    font-size: var(--text-xs);
+    color: var(--tsr-gray-600);
+    margin-top: var(--spacing-xs);
+    line-height: var(--leading-relaxed);
+    font-style: italic;
 }
 
 .form-input,
 .form-select,
 .form-textarea {
     width: 100%;
-    padding: var(--spacing-sm) var(--spacing-md);
-    border: 1px solid var(--tsr-gray-200);
-    border-radius: var(--radius-sm);
+    padding: var(--spacing-md);
+    border: 2px solid var(--tsr-gray-200);
+    border-radius: var(--radius-md);
     font-size: var(--text-sm);
     font-weight: var(--font-normal);
     line-height: var(--leading-normal);
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     font-family: var(--font-sans);
+    background: var(--tsr-white);
+    color: var(--tsr-gray-800);
+}
+
+.form-input::placeholder,
+.form-select::placeholder,
+.form-textarea::placeholder {
+    color: var(--tsr-gray-400);
+    opacity: 1;
+}
+
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+    border-color: var(--tsr-gray-300);
 }
 
 .form-input:focus,
@@ -530,12 +679,95 @@ input[type="checkbox"] {
     outline: none;
     border-color: var(--tsr-primary-light);
     box-shadow: 0 0 0 3px rgba(69, 123, 157, 0.1);
+    background: var(--tsr-white);
+}
+
+.form-input:invalid,
+.form-select:invalid,
+.form-textarea:invalid {
+    border-color: var(--tsr-error);
+}
+
+.form-input:invalid:focus,
+.form-select:invalid:focus,
+.form-textarea:invalid:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 .form-textarea {
-    min-height: 100px;
+    min-height: 120px;
     resize: vertical;
+    line-height: 1.6;
 }
+
+.form-select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right var(--spacing-md) center;
+    background-size: 16px;
+    appearance: none;
+    padding-right: calc(var(--spacing-md) + 20px);
+}
+
+/* Modal Form Actions */
+.form-actions {
+    padding: var(--spacing-lg) 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-xl);
+    border-top: 1px solid var(--tsr-gray-200);
+    padding-top: var(--spacing-lg);
+    flex-shrink: 0; /* Don't let buttons shrink */
+}
+
+.form-actions .btn {
+    min-width: 120px;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    font-weight: var(--font-medium);
+    transition: all 0.2s ease;
+}
+
+.form-actions .btn-primary {
+    background: linear-gradient(135deg, var(--tsr-primary-light) 0%, var(--tsr-primary-dark) 100%);
+    border: none;
+    color: var(--tsr-white);
+    box-shadow: 0 4px 12px rgba(69, 123, 157, 0.15);
+}
+
+.form-actions .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(69, 123, 157, 0.25);
+}
+
+.form-actions .btn-secondary {
+    background: var(--tsr-white);
+    border: 2px solid var(--tsr-gray-300);
+    color: var(--tsr-gray-700);
+}
+
+.form-actions .btn-secondary:hover {
+    background: var(--tsr-gray-50);
+    border-color: var(--tsr-gray-400);
+    transform: translateY(-1px);
+}
+
+/* Prevent body scroll when modal is open */
+body.modal-open {
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* Simple icon replacement using pseudo elements */
+.icon-server::before { content: "🖥️"; }
+.icon-network::before { content: "🌐"; }
+.icon-circuit::before { content: "🔗"; }
+.icon-voice::before { content: "📞"; }
+.icon-building::before { content: "🏢"; }
+.icon-customer::before { content: "👤"; }
+.icon-alert::before { content: "⚠️"; }
+.icon-nni::before { content: "🔀"; }
 
 /* File Upload */
 .file-upload {

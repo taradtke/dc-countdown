@@ -67,16 +67,12 @@ class User extends BaseModel {
   }
 
   async updateLastLogin(userId) {
-    const query = this.dbType === 'postgres' ? `
-      UPDATE users 
-      SET last_login = CURRENT_TIMESTAMP 
-      WHERE id = $1
-    ` : `
+    const query = `
       UPDATE users 
       SET last_login = CURRENT_TIMESTAMP 
       WHERE id = ?
     `;
-    return this.execute(query, [userId]);
+    return this.db.run(query, [userId]);
   }
 
   async hashPassword(password) {

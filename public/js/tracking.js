@@ -4,6 +4,29 @@ let currentTab = 'servers';
 let currentEditItem = null;
 let currentEditType = null;
 
+// Helper function for authenticated fetch requests
+// Uses the auth manager from auth.js since window.fetch is already overridden
+function authenticatedFetch(url, options = {}) {
+    // Set Content-Type for POST/PUT requests if not already set
+    const defaultOptions = {
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        ...options
+    };
+    
+    // Merge headers properly
+    if (options.headers) {
+        defaultOptions.headers = {
+            ...defaultOptions.headers,
+            ...options.headers
+        };
+    }
+    
+    // auth.js window.fetch override will add Authorization header
+    return fetch(url, defaultOptions);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initializeTabs();
     
@@ -90,11 +113,44 @@ function setupEventListeners() {
     document.querySelector('.close').addEventListener('click', closeModal);
     document.getElementById('cancel-btn').addEventListener('click', closeModal);
     document.getElementById('edit-form').addEventListener('submit', handleFormSubmit);
+    
+    // Close modal when clicking outside of modal content
+    document.getElementById('edit-modal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('edit-modal')) {
+            closeModal();
+        }
+    });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('edit-modal');
+            if (modal && modal.style.display === 'block') {
+                closeModal();
+            }
+            // Also close customer details modal if open
+            const customerModal = document.querySelector('.modal');
+            if (customerModal) {
+                closeCustomerDetails();
+            }
+        }
+    });
+    
+    // Add button event listeners
+    document.getElementById('add-server-btn').addEventListener('click', showAddServer);
+    document.getElementById('add-vlan-btn').addEventListener('click', showAddVlan);
+    document.getElementById('add-circuit-btn').addEventListener('click', showAddCarrierCircuit);
+    document.getElementById('add-nni-btn').addEventListener('click', showAddCarrierNni);
+    document.getElementById('add-public-network-btn').addEventListener('click', showAddPublicNetwork);
+    document.getElementById('add-voice-btn').addEventListener('click', showAddVoiceSystem);
+    document.getElementById('add-colo-btn').addEventListener('click', showAddColoCustomer);
+    document.getElementById('add-customer-btn').addEventListener('click', showAddCustomer);
+    document.getElementById('add-critical-btn').addEventListener('click', showAddCriticalItem);
 }
 
 async function loadData() {
     try {
-        const stats = await fetch(`${API_URL}/stats`).then(r => r.json());
+        const stats = await authenticatedFetch(`${API_URL}/stats`).then(r => r.json());
         updateStats(stats);
         
         switch(currentTab) {
@@ -193,8 +249,8 @@ function updateStats(stats) {
 
 async function loadServers() {
     const [servers, depCounts] = await Promise.all([
-        fetch(`${API_URL}/servers`).then(r => r.json()),
-        fetch(`${API_URL}/dependency-counts`).then(r => r.json())
+        authenticatedFetch(`${API_URL}/servers`).then(r => r.json()),
+        authenticatedFetch(`${API_URL}/dependency-counts`).then(r => r.json())
     ]);
     
     const tbody = document.querySelector('#servers-table tbody');
@@ -234,8 +290,8 @@ async function loadServers() {
 
 async function loadVlans() {
     const [vlans, depCounts] = await Promise.all([
-        fetch(`${API_URL}/vlans`).then(r => r.json()),
-        fetch(`${API_URL}/dependency-counts`).then(r => r.json())
+        authenticatedFetch(`${API_URL}/vlans`).then(r => r.json()),
+        authenticatedFetch(`${API_URL}/dependency-counts`).then(r => r.json())
     ]);
     
     const tbody = document.querySelector('#vlans-table tbody');
@@ -266,8 +322,8 @@ async function loadVlans() {
 
 async function loadCarrierCircuits() {
     const [circuits, depCounts] = await Promise.all([
-        fetch(`${API_URL}/carrier-circuits`).then(r => r.json()),
-        fetch(`${API_URL}/dependency-counts`).then(r => r.json())
+        authenticatedFetch(`${API_URL}/carrier-circuits`).then(r => r.json()),
+        authenticatedFetch(`${API_URL}/dependency-counts`).then(r => r.json())
     ]);
     const tbody = document.querySelector('#circuits-table tbody');
     tbody.innerHTML = '';
@@ -300,8 +356,8 @@ async function loadCarrierCircuits() {
 
 async function loadCarrierNnis() {
     const [nnis, depCounts] = await Promise.all([
-        fetch(`${API_URL}/carrier-nnis`).then(r => r.json()),
-        fetch(`${API_URL}/dependency-counts`).then(r => r.json())
+        authenticatedFetch(`${API_URL}/carrier-nnis`).then(r => r.json()),
+        authenticatedFetch(`${API_URL}/dependency-counts`).then(r => r.json())
     ]);
     
     const tbody = document.querySelector('#nnis-table tbody');
@@ -347,8 +403,8 @@ async function updateCarrierNni(id, field, value) {
 
 async function loadPublicNetworks() {
     const [networks, depCounts] = await Promise.all([
-        fetch(`${API_URL}/public-networks`).then(r => r.json()),
-        fetch(`${API_URL}/dependency-counts`).then(r => r.json())
+        authenticatedFetch(`${API_URL}/public-networks`).then(r => r.json()),
+        authenticatedFetch(`${API_URL}/dependency-counts`).then(r => r.json())
     ]);
     const tbody = document.querySelector('#public-networks-table tbody');
     tbody.innerHTML = '';
@@ -381,7 +437,7 @@ async function loadPublicNetworks() {
 }
 
 async function loadVoiceSystems() {
-    const voiceSystems = await fetch(`${API_URL}/voice-systems`).then(r => r.json());
+    const voiceSystems = await authenticatedFetch(`${API_URL}/voice-systems`).then(r => r.json());
     const tbody = document.querySelector('#voice-table tbody');
     tbody.innerHTML = '';
     
@@ -422,7 +478,7 @@ async function loadVoiceSystems() {
 }
 
 async function loadColoCustomers() {
-    const coloCustomers = await fetch(`${API_URL}/colo-customers`).then(r => r.json());
+    const coloCustomers = await authenticatedFetch(`${API_URL}/colo-customers`).then(r => r.json());
     const tbody = document.querySelector('#colo-table tbody');
     tbody.innerHTML = '';
     
@@ -450,13 +506,13 @@ async function loadColoCustomers() {
 }
 
 async function loadCustomers() {
-    const customers = await fetch(`${API_URL}/customers`).then(r => r.json());
+    const customers = await authenticatedFetch(`${API_URL}/customers`).then(r => r.json());
     const tbody = document.querySelector('#customers-table tbody');
     tbody.innerHTML = '';
     
     for (const customer of customers) {
         // Fetch migration status for each customer
-        const status = await fetch(`${API_URL}/customers/${customer.id}/status`).then(r => r.json());
+        const status = await authenticatedFetch(`${API_URL}/customers/${customer.id}/status`).then(r => r.json());
         
         // Calculate total completed and total assets
         let totalAssets = 0;
@@ -511,8 +567,8 @@ async function loadCustomers() {
 
 async function viewCustomerDetails(customerId, customerName) {
     // Create a modal to show customer details
-    const assets = await fetch(`${API_URL}/customers/${customerId}/assets`).then(r => r.json());
-    const status = await fetch(`${API_URL}/customers/${customerId}/status`).then(r => r.json());
+    const assets = await authenticatedFetch(`${API_URL}/customers/${customerId}/assets`).then(r => r.json());
+    const status = await authenticatedFetch(`${API_URL}/customers/${customerId}/status`).then(r => r.json());
     
     let assetsByType = {
         servers: [],
@@ -580,6 +636,7 @@ async function viewCustomerDetails(customerId, customerName) {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.display = 'block';
+    document.body.classList.add('modal-open');
     modal.innerHTML = `
         <div class="modal-content" style="max-width: 800px;">
             ${modalContent}
@@ -592,11 +649,12 @@ function closeCustomerDetails() {
     const modal = document.querySelector('.modal');
     if (modal) {
         modal.remove();
+        document.body.classList.remove('modal-open');
     }
 }
 
 async function editCustomer(customerId) {
-    const customer = await fetch(`${API_URL}/customers/${customerId}`).then(r => r.json());
+    const customer = await authenticatedFetch(`${API_URL}/customers/${customerId}`).then(r => r.json());
     
     // Show edit form in modal
     const modal = document.getElementById('edit-modal');
@@ -633,13 +691,13 @@ async function editCustomer(customerId) {
     
     currentEditItem = customer;
     currentEditType = 'customers';
-    modal.style.display = 'block';
+    showModal();
 }
 
 async function deleteCustomer(customerId, customerName) {
     if (confirm(`Are you sure you want to delete customer "${customerName}"? This will not delete their assets, but will unlink them.`)) {
         try {
-            await fetch(`${API_URL}/customers/${customerId}`, { method: 'DELETE' });
+            await authenticatedFetch(`${API_URL}/customers/${customerId}`, { method: 'DELETE' });
             await loadCustomers();
         } catch (error) {
             alert('Failed to delete customer');
@@ -649,44 +707,84 @@ async function deleteCustomer(customerId, customerName) {
 
 async function showAddCustomer() {
     const modal = document.getElementById('edit-modal');
+    const modalTitle = modal.querySelector('h3');
     const formFields = document.getElementById('form-fields');
+    
+    modalTitle.innerHTML = `
+        <i class="icon-customer"></i>
+        Add New Customer
+    `;
     
     formFields.innerHTML = `
         <div class="form-group">
-            <label>Customer Name</label>
-            <input type="text" id="new-customer-name" placeholder="Enter customer name" />
+            <label class="form-label required">Customer/Organization Name</label>
+            <input type="text" id="new-customer-name" class="form-input" placeholder="Acme Corporation, Global Tech Solutions" required />
+            <span class="form-hint">Full legal or business name of the customer</span>
         </div>
-        <div class="form-group">
-            <label>Primary Contact</label>
-            <input type="text" id="new-primary-contact" placeholder="Contact person name" />
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label required">Primary Contact</label>
+                <input type="text" id="new-primary-contact" class="form-input" placeholder="John Smith, Sarah Johnson" required />
+                <span class="form-hint">Main technical or business contact person</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Job Title/Role</label>
+                <input type="text" id="new-contact-title" class="form-input" placeholder="IT Director, System Admin" />
+                <span class="form-hint">Contact's position or role in organization</span>
+            </div>
         </div>
-        <div class="form-group">
-            <label>Contact Email</label>
-            <input type="email" id="new-contact-email" placeholder="contact@example.com" />
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label required">Contact Email</label>
+                <input type="email" id="new-contact-email" class="form-input" placeholder="contact@acmecorp.com" required />
+                <span class="form-hint">Primary email for migration communications</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Contact Phone</label>
+                <input type="tel" id="new-contact-phone" class="form-input" placeholder="(555) 123-4567" />
+                <span class="form-hint">Direct phone number for urgent matters</span>
+            </div>
         </div>
-        <div class="form-group">
-            <label>Contact Phone</label>
-            <input type="tel" id="new-contact-phone" placeholder="123-456-7890" />
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Contact Status</label>
+                <select id="new-contact-status" class="form-select">
+                    <option value="not_contacted">📧 Not Contacted</option>
+                    <option value="initial_contact">📞 Initial Contact</option>
+                    <option value="scheduling">📅 Scheduling Migration</option>
+                    <option value="scheduled">✅ Migration Scheduled</option>
+                    <option value="completed">🎉 Migration Completed</option>
+                </select>
+                <span class="form-hint">Current status of customer outreach and planning</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Priority Level</label>
+                <select id="new-customer-priority" class="form-select">
+                    <option value="standard">Standard Priority</option>
+                    <option value="high">🔴 High Priority</option>
+                    <option value="critical">🚨 Critical - VIP Customer</option>
+                </select>
+                <span class="form-hint">Customer importance and migration priority</span>
+            </div>
         </div>
+        
         <div class="form-group">
-            <label>Contact Status</label>
-            <select id="new-contact-status">
-                <option value="not_contacted">Not Contacted</option>
-                <option value="initial_contact">Initial Contact</option>
-                <option value="scheduling">Scheduling</option>
-                <option value="scheduled">Scheduled</option>
-                <option value="completed">Completed</option>
-            </select>
+            <label class="form-label">Customer Notes</label>
+            <textarea id="new-customer-notes" class="form-textarea" rows="3" placeholder="Special requirements, business hours, escalation contacts, technical preferences..."></textarea>
+            <span class="form-hint">Important customer-specific information for migration planning</span>
         </div>
     `;
     
     currentEditItem = null;
     currentEditType = 'new-customer';
-    modal.style.display = 'block';
+    showModal();
 }
 
 async function loadCriticalItems() {
-    const criticalItems = await fetch(`${API_URL}/critical-items`).then(r => r.json());
+    const criticalItems = await authenticatedFetch(`${API_URL}/critical-items`).then(r => r.json());
     const tbody = document.querySelector('#critical-table tbody');
     tbody.innerHTML = '';
     
@@ -748,59 +846,77 @@ async function updateCriticalItem(id, field, value) {
 }
 
 function showAddCriticalItem() {
-    const overlay = document.createElement('div');
-    overlay.className = 'confirm-dialog-overlay';
+    const modal = document.getElementById('edit-modal');
+    const modalTitle = modal.querySelector('h3');
+    const formFields = document.getElementById('form-fields');
     
-    const dialog = document.createElement('div');
-    dialog.className = 'confirm-dialog';
-    dialog.style.minWidth = '500px';
+    modalTitle.innerHTML = `
+        <i class="icon-alert"></i>
+        Add Critical Item
+    `;
     
-    dialog.innerHTML = `
-        <h3>Add Critical Item</h3>
-        <div style="display: flex; flex-direction: column; gap: 15px; margin: 20px 0;">
-            <div>
-                <label style="display: block; margin-bottom: 5px;">Title *</label>
-                <input type="text" id="critical-title" class="form-control" placeholder="Brief title of the task" style="width: 100%;">
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 5px;">Description</label>
-                <textarea id="critical-description" class="form-control" placeholder="Detailed description of what needs to be done" rows="3" style="width: 100%;"></textarea>
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 5px;">Success Criteria</label>
-                <textarea id="critical-success" class="form-control" placeholder="What defines completion? What are the acceptance criteria?" rows="3" style="width: 100%;"></textarea>
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 5px;">Priority</label>
-                <select id="critical-priority" class="form-control" style="width: 100%;">
-                    <option value="low">Low</option>
-                    <option value="medium" selected>Medium</option>
-                    <option value="high">High</option>
+    formFields.innerHTML = `
+        <div class="form-group">
+            <label class="form-label required">Task Title</label>
+            <input type="text" id="critical-title" class="form-input" placeholder="Brief, descriptive title of the critical task" required>
+            <span class="form-hint">A clear, concise title that identifies the task</span>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Detailed Description</label>
+            <textarea id="critical-description" class="form-textarea" rows="4" placeholder="Comprehensive description of what needs to be accomplished, including context and background..."></textarea>
+            <span class="form-hint">Provide detailed information about the task, its importance, and any relevant background</span>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Success Criteria</label>
+            <textarea id="critical-success" class="form-textarea" rows="3" placeholder="Define what completion looks like. What specific outcomes or deliverables indicate this task is done?"></textarea>
+            <span class="form-hint">Clear, measurable criteria that define when this task is considered complete</span>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label required">Priority Level</label>
+                <select id="critical-priority" class="form-select" required>
+                    <option value="">Select priority...</option>
+                    <option value="high" style="color: #dc3545;">🔴 High Priority</option>
+                    <option value="medium" selected style="color: #ffc107;">🟡 Medium Priority</option>
+                    <option value="low" style="color: #28a745;">🟢 Low Priority</option>
                 </select>
+                <span class="form-hint">Impact level and urgency of this task</span>
             </div>
-            <div>
-                <label style="display: block; margin-bottom: 5px;">Assign To</label>
-                <select id="critical-engineer" class="form-control" style="width: 100%;">
+            <div class="form-group">
+                <label class="form-label">Assign Engineer</label>
+                <select id="critical-engineer" class="form-select">
                     <option value="">-- Select Engineer --</option>
                     ${ENGINEERS.map(eng => `<option value="${eng.id}">${eng.name}</option>`).join('')}
                 </select>
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 5px;">Notes</label>
-                <textarea id="critical-notes" class="form-control" placeholder="Any additional notes or context" rows="2" style="width: 100%;"></textarea>
+                <span class="form-hint">Primary engineer responsible for completion</span>
             </div>
         </div>
-        <div class="confirm-dialog-buttons">
-            <button class="btn btn-secondary" onclick="closeAddCriticalDialog()">Cancel</button>
-            <button class="btn btn-primary" onclick="addCriticalItem()">Add Item</button>
+        
+        <div class="form-group">
+            <label class="form-label">Additional Notes</label>
+            <textarea id="critical-notes" class="form-textarea" rows="3" placeholder="Any additional context, dependencies, constraints, or other relevant information..."></textarea>
+            <span class="form-hint">Supplementary information that may be helpful for task completion</span>
         </div>
     `;
     
-    document.body.appendChild(overlay);
-    document.body.appendChild(dialog);
+    // Override the form submission to use our custom function
+    const form = modal.querySelector('#edit-form');
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        await addCriticalItem();
+    };
+    
+    currentEditType = 'new-critical-item';
+    currentEditItem = null;
+    showModal();
     
     // Focus on title input
-    document.getElementById('critical-title').focus();
+    setTimeout(() => {
+        document.getElementById('critical-title').focus();
+    }, 100);
 }
 
 function closeAddCriticalDialog() {
@@ -826,14 +942,13 @@ async function addCriticalItem() {
     };
     
     try {
-        const response = await fetch(`${API_URL}/critical-items`, {
+        const response = await authenticatedFetch(`${API_URL}/critical-items`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(item)
         });
         
         if (response.ok) {
-            closeAddCriticalDialog();
+            closeModal();
             loadCriticalItems();
         } else {
             alert('Failed to add critical item');
@@ -845,8 +960,8 @@ async function addCriticalItem() {
 }
 
 async function loadLeaderboard() {
-    const leaderboard = await fetch(`${API_URL}/leaderboard`).then(r => r.json());
-    const stats = await fetch(`${API_URL}/stats`).then(r => r.json());
+    const leaderboard = await authenticatedFetch(`${API_URL}/leaderboard`).then(r => r.json());
+    const stats = await authenticatedFetch(`${API_URL}/stats`).then(r => r.json());
     const tbody = document.querySelector('#leaderboard-table tbody');
     tbody.innerHTML = '';
     
@@ -942,9 +1057,8 @@ async function updateColoCustomer(id, field, value) {
 
 async function updateItem(type, id, data) {
     try {
-        await fetch(`${API_URL}/${type}/${id}`, {
+        await authenticatedFetch(`${API_URL}/${type}/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
         loadData();
@@ -997,7 +1111,7 @@ async function handleExport() {
     }
     
     try {
-        const response = await fetch(`${API_URL}/${endpoint}`);
+        const response = await authenticatedFetch(`${API_URL}/${endpoint}`);
         
         if (response.ok) {
             const blob = await response.blob();
@@ -1038,7 +1152,7 @@ async function handleFileUpload(event) {
     }
     
     try {
-        const response = await fetch(`${API_URL}/${endpoint}`, {
+        const response = await authenticatedFetch(`${API_URL}/${endpoint}`, {
             method: 'POST',
             body: formData
         });
@@ -1068,8 +1182,21 @@ function openModal() {
     document.getElementById('edit-modal').style.display = 'block';
 }
 
+function showModal() {
+    const modal = document.getElementById('edit-modal');
+    modal.style.display = 'block';
+    document.body.classList.add('modal-open');
+    
+    // Focus management for accessibility
+    const firstInput = modal.querySelector('input, textarea, select, button');
+    if (firstInput) {
+        setTimeout(() => firstInput.focus(), 100);
+    }
+}
+
 function closeModal() {
     document.getElementById('edit-modal').style.display = 'none';
+    document.body.classList.remove('modal-open');
     currentEditItem = null;
     currentEditType = null;
 }
@@ -1088,9 +1215,8 @@ async function handleFormSubmit(event) {
         };
         
         try {
-            await fetch(`${API_URL}/customers/${currentEditItem.id}`, {
+            await authenticatedFetch(`${API_URL}/customers/${currentEditItem.id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedData)
             });
             await loadCustomers();
@@ -1102,25 +1228,586 @@ async function handleFormSubmit(event) {
         const newCustomer = {
             customer_name: document.getElementById('new-customer-name').value,
             primary_contact: document.getElementById('new-primary-contact').value,
+            contact_title: document.getElementById('new-contact-title').value,
             contact_email: document.getElementById('new-contact-email').value,
             contact_phone: document.getElementById('new-contact-phone').value,
-            contact_status: document.getElementById('new-contact-status').value
+            contact_status: document.getElementById('new-contact-status').value,
+            priority: document.getElementById('new-customer-priority').value,
+            notes: document.getElementById('new-customer-notes').value
         };
         
         try {
-            await fetch(`${API_URL}/customers`, {
+            await authenticatedFetch(`${API_URL}/customers`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newCustomer)
             });
             await loadCustomers();
         } catch (error) {
             alert('Failed to create customer');
         }
+    } else if (currentEditType === 'new-server') {
+        const payload = {
+            customer: document.getElementById('new-server-customer').value,
+            vm_name: document.getElementById('new-server-vm').value,
+            host: document.getElementById('new-server-host').value,
+            ip_addresses: document.getElementById('new-server-ips').value,
+            notes: document.getElementById('new-server-notes').value
+        };
+        try {
+            const response = await authenticatedFetch(`${API_URL}/servers`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            await loadServers();
+            closeModal();
+        } catch (e) {
+            console.error('Server creation error:', e);
+            alert(`Failed to create server: ${e.message}`);
+        }
+    } else if (currentEditType === 'new-vlan') {
+        const payload = {
+            vlan_id: parseInt(document.getElementById('new-vlan-id').value) || null,
+            name: document.getElementById('new-vlan-name').value,
+            description: document.getElementById('new-vlan-desc').value,
+            network: document.getElementById('new-vlan-network').value,
+            gateway: document.getElementById('new-vlan-gateway').value
+        };
+        try {
+            await authenticatedFetch(`${API_URL}/vlans`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            await loadVlans();
+        } catch (e) {
+            alert('Failed to create VLAN');
+        }
+    } else if (currentEditType === 'new-carrier-circuit') {
+        const payload = {
+            circuit_id: document.getElementById('new-circuit-id').value,
+            provider: document.getElementById('new-circuit-provider').value,
+            type: document.getElementById('new-circuit-type').value,
+            bandwidth: document.getElementById('new-circuit-bandwidth').value,
+            location_a: document.getElementById('new-circuit-loc-a').value,
+            location_z: document.getElementById('new-circuit-loc-z').value,
+            notes: document.getElementById('new-circuit-notes').value
+        };
+        try {
+            await authenticatedFetch(`${API_URL}/carrier-circuits`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            await loadCarrierCircuits();
+        } catch (e) {
+            alert('Failed to create carrier circuit');
+        }
+    } else if (currentEditType === 'new-public-network') {
+        const payload = {
+            network_name: document.getElementById('new-net-name').value,
+            cidr: document.getElementById('new-net-cidr').value,
+            provider: document.getElementById('new-net-provider').value,
+            gateway: document.getElementById('new-net-gateway').value,
+            notes: document.getElementById('new-net-notes').value
+        };
+        try {
+            await authenticatedFetch(`${API_URL}/public-networks`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            await loadPublicNetworks();
+        } catch (e) {
+            alert('Failed to create public network');
+        }
+    } else if (currentEditType === 'new-voice-system') {
+        const payload = {
+            customer: document.getElementById('new-voice-customer').value,
+            vm_name: document.getElementById('new-voice-vm').value,
+            system_type: document.getElementById('new-voice-type').value,
+            extension_count: parseInt(document.getElementById('new-voice-ext').value) || 0,
+            notes: document.getElementById('new-voice-notes').value
+        };
+        try {
+            await authenticatedFetch(`${API_URL}/voice-systems`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            await loadVoiceSystems();
+        } catch (e) {
+            alert('Failed to create voice system');
+        }
+    } else if (currentEditType === 'new-carrier-nni') {
+        const payload = {
+            carrier_name: document.getElementById('new-nni-carrier').value,
+            circuit_id: document.getElementById('new-nni-circuit').value,
+            interface_type: document.getElementById('new-nni-interface').value,
+            bandwidth: document.getElementById('new-nni-bandwidth').value,
+            location: document.getElementById('new-nni-location').value,
+            vlan_range: document.getElementById('new-nni-vlan').value,
+            ip_block: document.getElementById('new-nni-ip').value,
+            current_device: document.getElementById('new-nni-current').value,
+            migration_status: 'pending'
+        };
+        try {
+            await authenticatedFetch(`${API_URL}/carrier-nnis`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            await loadCarrierNnis();
+        } catch (e) {
+            alert('Failed to create carrier NNI');
+        }
+    } else if (currentEditType === 'new-colo-customer') {
+        const payload = {
+            customer_name: document.getElementById('new-colo-name').value,
+            rack_location: document.getElementById('new-colo-rack').value,
+            new_cabinet_number: document.getElementById('new-colo-cab').value,
+            equipment_count: parseInt(document.getElementById('new-colo-equip').value) || 0,
+            power_usage: parseFloat(document.getElementById('new-colo-power').value) || 0,
+            notes: document.getElementById('new-colo-notes').value
+        };
+        try {
+            await authenticatedFetch(`${API_URL}/colo-customers`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            await loadColoCustomers();
+        } catch (e) {
+            alert('Failed to create colo customer');
+        }
+    } else if (currentEditType === 'new-critical-item') {
+        await addCriticalItem();
+        return; // addCriticalItem handles modal closing
     }
     
     closeModal();
 }
+
+function showAddServer() {
+    const modal = document.getElementById('edit-modal');
+    const modalTitle = modal.querySelector('h3');
+    const formFields = document.getElementById('form-fields');
+    
+    modalTitle.innerHTML = `
+        <i class="icon-server"></i>
+        Add New Server
+    `;
+    
+    formFields.innerHTML = `
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label required">Customer Name</label>
+                <input type="text" id="new-server-customer" class="form-input" placeholder="Enter customer name" required>
+                <span class="form-hint">Primary customer associated with this server</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label required">VM Name</label>
+                <input type="text" id="new-server-vm" class="form-input" placeholder="Enter VM name" required>
+                <span class="form-hint">Virtual machine hostname or identifier</span>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Host Server</label>
+                <input type="text" id="new-server-host" class="form-input" placeholder="Physical host server">
+                <span class="form-hint">Physical server hosting this VM</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">IP Addresses</label>
+                <input type="text" id="new-server-ips" class="form-input" placeholder="192.168.1.100, 10.0.0.50">
+                <span class="form-hint">Comma-separated list of IP addresses</span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Additional Notes</label>
+            <textarea id="new-server-notes" class="form-textarea" rows="3" placeholder="Any additional information about this server migration..."></textarea>
+            <span class="form-hint">Optional details, requirements, or migration notes</span>
+        </div>
+    `;
+    
+    currentEditType = 'new-server';
+    currentEditItem = null;
+    showModal();
+}
+
+function showAddVlan() {
+    const modal = document.getElementById('edit-modal');
+    const modalTitle = modal.querySelector('h3');
+    const formFields = document.getElementById('form-fields');
+    
+    modalTitle.innerHTML = `
+        <i class="icon-network"></i>
+        Add New VLAN
+    `;
+    
+    formFields.innerHTML = `
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label required">VLAN ID</label>
+                <input type="number" id="new-vlan-id" class="form-input" placeholder="123" min="1" max="4094" required>
+                <span class="form-hint">Valid range: 1-4094</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label required">VLAN Name</label>
+                <input type="text" id="new-vlan-name" class="form-input" placeholder="Production-Web" required>
+                <span class="form-hint">Descriptive name for this VLAN</span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Description</label>
+            <input type="text" id="new-vlan-desc" class="form-input" placeholder="Web servers production environment">
+            <span class="form-hint">Purpose and usage of this VLAN</span>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Network CIDR</label>
+                <input type="text" id="new-vlan-network" class="form-input" placeholder="192.168.100.0/24">
+                <span class="form-hint">Network address in CIDR notation</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Gateway IP</label>
+                <input type="text" id="new-vlan-gateway" class="form-input" placeholder="192.168.100.1">
+                <span class="form-hint">Default gateway for this network</span>
+            </div>
+        </div>
+    `;
+    
+    currentEditType = 'new-vlan';
+    currentEditItem = null;
+    showModal();
+}
+
+function showAddCarrierCircuit() {
+    const modal = document.getElementById('edit-modal');
+    const modalTitle = modal.querySelector('h3');
+    const formFields = document.getElementById('form-fields');
+    
+    modalTitle.innerHTML = `
+        <i class="icon-circuit"></i>
+        Add New Carrier Circuit
+    `;
+    
+    formFields.innerHTML = `
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label required">Circuit ID</label>
+                <input type="text" id="new-circuit-id" class="form-input" placeholder="CKT-12345-ABC" required>
+                <span class="form-hint">Carrier-provided circuit identifier</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label required">Provider/Vendor</label>
+                <input type="text" id="new-circuit-provider" class="form-input" placeholder="Verizon, AT&T, CenturyLink" required>
+                <span class="form-hint">Telecommunications service provider</span>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Service Type</label>
+                <select id="new-circuit-type" class="form-select">
+                    <option value="">Select service type...</option>
+                    <option value="DIA">DIA - Dedicated Internet Access</option>
+                    <option value="MPLS">MPLS - Multi-Protocol Label Switching</option>
+                    <option value="EPL">EPL - Ethernet Private Line</option>
+                    <option value="ELAN">ELAN - Ethernet LAN</option>
+                    <option value="Metro Ethernet">Metro Ethernet</option>
+                    <option value="Other">Other</option>
+                </select>
+                <span class="form-hint">Type of carrier service</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Bandwidth</label>
+                <input type="text" id="new-circuit-bandwidth" class="form-input" placeholder="100 Mbps, 1 Gbps, 10 Gbps">
+                <span class="form-hint">Circuit speed/capacity</span>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Location A (Source)</label>
+                <input type="text" id="new-circuit-loc-a" class="form-input" placeholder="Data Center A, Building 1">
+                <span class="form-hint">Primary/source location</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Location Z (Destination)</label>
+                <input type="text" id="new-circuit-loc-z" class="form-input" placeholder="Data Center B, Building 2">
+                <span class="form-hint">Secondary/destination location</span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Migration Notes</label>
+            <textarea id="new-circuit-notes" class="form-textarea" rows="3" placeholder="Special requirements, dependencies, or migration considerations..."></textarea>
+            <span class="form-hint">Additional details about circuit configuration or migration requirements</span>
+        </div>
+    `;
+    
+    currentEditType = 'new-carrier-circuit';
+    currentEditItem = null;
+    showModal();
+}
+
+function showAddPublicNetwork() {
+    const modal = document.getElementById('edit-modal');
+    const modalTitle = modal.querySelector('h3');
+    const formFields = document.getElementById('form-fields');
+    
+    modalTitle.innerHTML = `
+        <i class="icon-network"></i>
+        Add New Public Network
+    `;
+    
+    formFields.innerHTML = `
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label required">Network Name</label>
+                <input type="text" id="new-net-name" class="form-input" placeholder="Production-DMZ, Customer-Public" required>
+                <span class="form-hint">Descriptive name for this public network segment</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label required">Network CIDR</label>
+                <input type="text" id="new-net-cidr" class="form-input" placeholder="203.0.113.0/24, 192.0.2.0/28" required>
+                <span class="form-hint">Public IP network in CIDR notation</span>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Service Provider</label>
+                <input type="text" id="new-net-provider" class="form-input" placeholder="ISP Name, Transit Provider">
+                <span class="form-hint">Internet service or transit provider</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Gateway IP</label>
+                <input type="text" id="new-net-gateway" class="form-input" placeholder="203.0.113.1, 192.0.2.1">
+                <span class="form-hint">Default gateway for this network</span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Migration Notes</label>
+            <textarea id="new-net-notes" class="form-textarea" rows="3" placeholder="BGP routing details, dependencies, special migration requirements..."></textarea>
+            <span class="form-hint">Routing configuration, BGP announcements, or migration-specific details</span>
+        </div>
+    `;
+    
+    currentEditType = 'new-public-network';
+    currentEditItem = null;
+    showModal();
+}
+
+function showAddVoiceSystem() {
+    const modal = document.getElementById('edit-modal');
+    const modalTitle = modal.querySelector('h3');
+    const formFields = document.getElementById('form-fields');
+    
+    modalTitle.innerHTML = `
+        <i class="icon-voice"></i>
+        Add New Voice System
+    `;
+    
+    formFields.innerHTML = `
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label required">Customer Name</label>
+                <input type="text" id="new-voice-customer" class="form-input" placeholder="Acme Corp, Global Services" required>
+                <span class="form-hint">Customer or organization using this voice system</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label required">System/VM Name</label>
+                <input type="text" id="new-voice-vm" class="form-input" placeholder="pbx-main-01, voip-server-prod" required>
+                <span class="form-hint">Virtual machine or system hostname</span>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">System Type</label>
+                <select id="new-voice-type" class="form-select">
+                    <option value="">Select system type...</option>
+                    <option value="3CX">3CX Phone System</option>
+                    <option value="CUCM">Cisco CUCM</option>
+                    <option value="Asterisk">Asterisk PBX</option>
+                    <option value="FreePBX">FreePBX</option>
+                    <option value="SBC">SBC - Session Border Controller</option>
+                    <option value="PBX">Traditional PBX</option>
+                    <option value="Other">Other</option>
+                </select>
+                <span class="form-hint">Type of voice/telephony system</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Extension Count</label>
+                <input type="number" id="new-voice-ext" class="form-input" placeholder="25, 100, 500" min="1">
+                <span class="form-hint">Number of phone extensions/users</span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Migration Notes</label>
+            <textarea id="new-voice-notes" class="form-textarea" rows="3" placeholder="Dial plans, trunk configurations, dependencies, downtime requirements..."></textarea>
+            <span class="form-hint">Voice-specific migration details, configurations, or special requirements</span>
+        </div>
+    `;
+    
+    currentEditType = 'new-voice-system';
+    currentEditItem = null;
+    showModal();
+}
+
+function showAddCarrierNni() {
+    const modal = document.getElementById('edit-modal');
+    const modalTitle = modal.querySelector('h3');
+    const formFields = document.getElementById('form-fields');
+    
+    modalTitle.innerHTML = `
+        <i class="icon-nni"></i>
+        Add New Carrier NNI
+    `;
+    
+    formFields.innerHTML = `
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label required">Carrier/Provider</label>
+                <input type="text" id="new-nni-carrier" class="form-input" placeholder="Verizon, AT&T, Level3" required>
+                <span class="form-hint">Network service provider for this NNI</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Circuit ID</label>
+                <input type="text" id="new-nni-circuit" class="form-input" placeholder="NNI-12345-ABC">
+                <span class="form-hint">Carrier-provided circuit identifier</span>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Interface Type</label>
+                <select id="new-nni-interface" class="form-select">
+                    <option value="">Select interface type...</option>
+                    <option value="1GE">1GE - 1 Gigabit Ethernet</option>
+                    <option value="10GE">10GE - 10 Gigabit Ethernet</option>
+                    <option value="25GE">25GE - 25 Gigabit Ethernet</option>
+                    <option value="40GE">40GE - 40 Gigabit Ethernet</option>
+                    <option value="100GE">100GE - 100 Gigabit Ethernet</option>
+                    <option value="Other">Other</option>
+                </select>
+                <span class="form-hint">Physical interface type</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Bandwidth</label>
+                <input type="text" id="new-nni-bandwidth" class="form-input" placeholder="1 Gbps, 10 Gbps">
+                <span class="form-hint">Provisioned bandwidth capacity</span>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Location</label>
+                <input type="text" id="new-nni-location" class="form-input" placeholder="Data Center Alpha, Meet-Me Room">
+                <span class="form-hint">Physical location of the NNI</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Current Device</label>
+                <input type="text" id="new-nni-current" class="form-input" placeholder="Switch01, Router02">
+                <span class="form-hint">Current network device/equipment</span>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">VLAN Range</label>
+                <input type="text" id="new-nni-vlan" class="form-input" placeholder="100-200, 1000-1099">
+                <span class="form-hint">Allowed VLAN ID ranges for this NNI</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">IP Block/Subnet</label>
+                <input type="text" id="new-nni-ip" class="form-input" placeholder="203.0.113.0/24, 10.1.0.0/16">
+                <span class="form-hint">IP address space routed over this NNI</span>
+            </div>
+        </div>
+    `;
+    
+    currentEditType = 'new-carrier-nni';
+    currentEditItem = null;
+    showModal();
+}
+
+function showAddColoCustomer() {
+    const modal = document.getElementById('edit-modal');
+    const modalTitle = modal.querySelector('h3');
+    const formFields = document.getElementById('form-fields');
+    
+    modalTitle.innerHTML = `
+        <i class="icon-building"></i>
+        Add New Colo Customer
+    `;
+    
+    formFields.innerHTML = `
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label required">Customer Name</label>
+                <input type="text" id="new-colo-name" class="form-input" placeholder="Acme Corp, TechStart LLC" required>
+                <span class="form-hint">Colocation customer or tenant name</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Current Rack Location</label>
+                <input type="text" id="new-colo-rack" class="form-input" placeholder="A01-05, Row B Rack 12">
+                <span class="form-hint">Current rack/cabinet location in data center</span>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">New Cabinet Number</label>
+                <input type="text" id="new-colo-cab" class="form-input" placeholder="C15-07, Cabinet 150">
+                <span class="form-hint">Destination cabinet in new facility</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Equipment Count</label>
+                <input type="number" id="new-colo-equip" class="form-input" placeholder="5, 12, 25" min="1">
+                <span class="form-hint">Number of servers/devices to migrate</span>
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Power Usage (kW)</label>
+                <input type="number" step="0.1" id="new-colo-power" class="form-input" placeholder="2.5, 5.0, 10.8" min="0">
+                <span class="form-hint">Total power consumption in kilowatts</span>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Rack Units (U)</label>
+                <input type="number" id="new-colo-units" class="form-input" placeholder="20, 42" min="1" max="50">
+                <span class="form-hint">Space required in rack units</span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Migration Notes</label>
+            <textarea id="new-colo-notes" class="form-textarea" rows="3" placeholder="Special handling requirements, network dependencies, power requirements, cooling needs..."></textarea>
+            <span class="form-hint">Physical migration requirements, special equipment, or customer-specific needs</span>
+        </div>
+    `;
+    
+    currentEditType = 'new-colo-customer';
+    currentEditItem = null;
+    showModal();
+}
+
+window.showAddServer = showAddServer;
+window.showAddVlan = showAddVlan;
+window.showAddCarrierCircuit = showAddCarrierCircuit;
+window.showAddCarrierNni = showAddCarrierNni;
+window.showAddPublicNetwork = showAddPublicNetwork;
+window.showAddVoiceSystem = showAddVoiceSystem;
+window.showAddColoCustomer = showAddColoCustomer;
 
 async function deleteItem(id, type, name) {
     showDeleteConfirmation(id, type, name);
@@ -1176,7 +1863,7 @@ async function confirmDelete(id, type) {
     }
     
     try {
-        const response = await fetch(`${API_URL}/${endpoint}/${id}`, {
+        const response = await authenticatedFetch(`${API_URL}/${endpoint}/${id}`, {
             method: 'DELETE'
         });
         
@@ -1201,8 +1888,8 @@ window.updateVoiceSystem = updateVoiceSystem;
 window.updateColoCustomer = updateColoCustomer;
 async function showDependencies(type, id, name) {
     const [dependencies, allItems] = await Promise.all([
-        fetch(`${API_URL}/dependencies/${type}/${id}`).then(r => r.json()),
-        fetch(`${API_URL}/all-items`).then(r => r.json())
+        authenticatedFetch(`${API_URL}/dependencies/${type}/${id}`).then(r => r.json()),
+        authenticatedFetch(`${API_URL}/all-items`).then(r => r.json())
     ]);
     
     const overlay = document.createElement('div');
@@ -1367,7 +2054,7 @@ async function removeDependency(depId, sourceType, sourceId, sourceName) {
     }
     
     try {
-        const response = await fetch(`${API_URL}/dependencies/${depId}`, {
+        const response = await authenticatedFetch(`${API_URL}/dependencies/${depId}`, {
             method: 'DELETE'
         });
         
@@ -1395,9 +2082,8 @@ async function addDependency(sourceType, sourceId) {
     }
     
     try {
-        const response = await fetch(`${API_URL}/dependencies`, {
+        const response = await authenticatedFetch(`${API_URL}/dependencies`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 sourceType,
                 sourceId,

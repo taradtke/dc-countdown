@@ -61,7 +61,7 @@
             </div>
 
             <div class="tab-content active" id="servers-tab">
-                <h3>Servers Migration Status</h3>
+                <h3>Servers Migration Status <button class="btn btn-primary" style="margin-left: 10px;" id="add-server-btn">+ Add Server</button></h3>
                 <div class="table-container">
                     <table id="servers-table">
                         <thead>
@@ -87,7 +87,7 @@
             </div>
 
             <div class="tab-content" id="vlans-tab">
-                <h3>VLANs Migration Status</h3>
+                <h3>VLANs Migration Status <button class="btn btn-primary" style="margin-left: 10px;" id="add-vlan-btn">+ Add VLAN</button></h3>
                 <div class="table-container">
                     <table id="vlans-table">
                         <thead>
@@ -109,7 +109,7 @@
             </div>
 
             <div class="tab-content" id="circuits-tab">
-                <h3>Carrier Circuits Migration Status</h3>
+                <h3>Carrier Circuits Migration Status <button class="btn btn-primary" style="margin-left: 10px;" id="add-circuit-btn">+ Add Circuit</button></h3>
                 <div class="table-container">
                     <table id="circuits-table">
                         <thead>
@@ -134,7 +134,7 @@
             </div>
 
             <div class="tab-content" id="nnis-tab">
-                <h3>Carrier NNIs Migration Status</h3>
+                <h3>Carrier NNIs Migration Status <button class="btn btn-primary" style="margin-left: 10px;" id="add-nni-btn">+ Add Carrier NNI</button></h3>
                 <div class="table-container">
                     <table id="nnis-table">
                         <thead>
@@ -161,7 +161,7 @@
             </div>
 
             <div class="tab-content" id="public-networks-tab">
-                <h3>Public Networks Migration Status</h3>
+                <h3>Public Networks Migration Status <button class="btn btn-primary" style="margin-left: 10px;" id="add-public-network-btn">+ Add Public Network</button></h3>
                 <div class="table-container">
                     <table id="public-networks-table">
                         <thead>
@@ -188,7 +188,7 @@
             </div>
 
             <div class="tab-content" id="voice-tab">
-                <h3>Voice Systems Migration Status</h3>
+                <h3>Voice Systems Migration Status <button class="btn btn-primary" style="margin-left: 10px;" id="add-voice-btn">+ Add Voice System</button></h3>
                 <div class="table-container">
                     <table id="voice-table">
                         <thead>
@@ -212,7 +212,7 @@
             </div>
 
             <div class="tab-content" id="colo-tab">
-                <h3>Colo Customers Migration Status</h3>
+                <h3>Colo Customers Migration Status <button class="btn btn-primary" style="margin-left: 10px;" id="add-colo-btn">+ Add Colo Customer</button></h3>
                 <div class="table-container">
                     <table id="colo-table">
                         <thead>
@@ -239,7 +239,7 @@
                 <div class="customers-container">
                     <div class="customers-header">
                         <p>View migration status and dependencies for each customer</p>
-                        <button class="btn btn-primary" onclick="showAddCustomer()">+ Add Customer</button>
+                        <button class="btn btn-primary" id="add-customer-btn">+ Add Customer</button>
                     </div>
                     <div class="table-container">
                         <table id="customers-table">
@@ -267,7 +267,7 @@
                 <h3>🚨 Critical Items / Loose Ends</h3>
                 <div class="critical-header">
                     <p>Track important tasks and initiatives that need to be completed</p>
-                    <button class="btn btn-primary" onclick="showAddCriticalItem()">+ Add Critical Item</button>
+                    <button class="btn btn-primary" id="add-critical-btn">+ Add Critical Item</button>
                 </div>
                 <div class="table-container">
                     <table id="critical-table">
@@ -340,10 +340,12 @@
             <span class="close">&times;</span>
             <h3>Update Item Status</h3>
             <form id="edit-form">
-                <div id="form-fields"></div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                    <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
+                <div class="modal-form-content">
+                    <div id="form-fields"></div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
+                    </div>
                 </div>
             </form>
         </div>

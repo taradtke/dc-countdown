@@ -248,17 +248,19 @@ const authManager = new AuthManager();
 const originalFetch = window.fetch;
 window.fetch = function(...args) {
     // Add auth header if available
-    if (authManager.getToken() && args[1]) {
-        args[1].headers = {
-            ...args[1].headers,
-            'Authorization': `Bearer ${authManager.getToken()}`
-        };
-    } else if (authManager.getToken() && !args[1]) {
-        args[1] = {
-            headers: {
-                'Authorization': `Bearer ${authManager.getToken()}`
-            }
-        };
+    if (authManager.getToken()) {
+        // Ensure args[1] exists (options object)
+        if (!args[1]) {
+            args[1] = {};
+        }
+        
+        // Ensure headers object exists
+        if (!args[1].headers) {
+            args[1].headers = {};
+        }
+        
+        // Add authorization header without overriding existing headers
+        args[1].headers['Authorization'] = `Bearer ${authManager.getToken()}`;
     }
     
     return originalFetch.apply(this, args);

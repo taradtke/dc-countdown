@@ -67,20 +67,29 @@ class PostgresDatabase {
     }
   }
 
+  // Convert SQLite-style ? placeholders to PostgreSQL $1, $2, etc.
+  convertQuery(query) {
+    let index = 0;
+    return query.replace(/\?/g, () => `$${++index}`);
+  }
+
   // Query methods compatible with SQLite interface
   async all(query, params = []) {
-    const result = await this.pool.query(query, params);
+    const pgQuery = this.convertQuery(query);
+    const result = await this.pool.query(pgQuery, params);
     return result.rows;
   }
 
   async get(query, params = []) {
-    const result = await this.pool.query(query, params);
+    const pgQuery = this.convertQuery(query);
+    const result = await this.pool.query(pgQuery, params);
     return result.rows[0] || null;
   }
 
   async run(query, params = []) {
+    const pgQuery = this.convertQuery(query);
     try {
-      const result = await this.pool.query(query, params);
+      const result = await this.pool.query(pgQuery, params);
       // Check if this is an INSERT with RETURNING
       if (query.toLowerCase().includes('returning')) {
         return {
@@ -95,7 +104,7 @@ class PostgresDatabase {
       };
     } catch (error) {
       console.error('PostgreSQL query error:', error.message);
-      console.error('Query:', query);
+      console.error('Query:', pgQuery);
       console.error('Params:', params);
       throw error;
     }
