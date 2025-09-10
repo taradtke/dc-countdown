@@ -5,38 +5,64 @@ services:
     build: .
     container_name: dc-countdown-app
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:3000"
     volumes:
-      # Mount source code for development with hot reload
-      - .:/usr/src/app
-      # Exclude node_modules to use container's dependencies
-      - /usr/src/app/node_modules
       # Persist database
-      - ./data:/usr/src/app/data
+      - db-data:/usr/src/app/data
       # Persist uploads
-      - ./uploads:/usr/src/app/uploads
+      - uploads:/usr/src/app/uploads
+      # Persist logs
+      - logs:/usr/src/app/logs
+      # Persist backups
+      - backups:/usr/src/app/backups
+    env_file:
+      - .env
     environment:
-      - NODE_ENV=development
-      - PORT=3000
+      - NODE_ENV=production
       - DB_PATH=/usr/src/app/data/migration.db
-    command: npm run dev
+      - DB_BACKUP_PATH=/usr/src/app/backups
     restart: unless-stopped
+    networks:
+      - dc-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-  # Optional: Add nginx for production-like setup
+  # Optional: Add nginx for production with caching
   nginx:
     image: nginx:alpine
     container_name: dc-countdown-nginx
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - .:/usr/share/nginx/html:ro
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx-cache:/var/cache/nginx
+      - ./public:/usr/share/nginx/html:ro
     depends_on:
       - app
     restart: unless-stopped
+    networks:
+      - dc-network
     profiles:
-      - production
+      - with-nginx
+
+networks:
+  dc-network:
+    driver: bridge
 
 volumes:
-  data:
+  db-data:
+    driver: local
   uploads:
+    driver: local
+  logs:
+    driver: local
+  backups:
+    driver: local
+  nginx-cache:
+    driver: local

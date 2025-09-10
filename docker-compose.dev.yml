@@ -1,47 +1,152 @@
+version: '3.8'
 
 services:
+  # Development application container with hot reload
   app:
     build:
       context: .
       dockerfile: Dockerfile.dev
     container_name: dc-countdown-dev
     volumes:
-      # Mount entire project directory for hot reload
+      # Mount entire project for hot reload
       - .:/usr/src/app
-      # Use container's node_modules
+      # Use container's node_modules to avoid conflicts
       - /usr/src/app/node_modules
-      # Persist database between restarts
+      # Persist data between restarts
       - db-data:/usr/src/app/data
-      # Persist uploads between restarts
       - uploads-data:/usr/src/app/uploads
+      - logs-data:/usr/src/app/logs
+      - backups-data:/usr/src/app/backups
+    env_file:
+      - .env.development
     environment:
       - NODE_ENV=development
       - PORT=3000
-      - DB_PATH=/usr/src/app/data/migration.db
+      # PostgreSQL configuration
+      - DB_TYPE=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=dc_migration
+      - DB_USER=dc_admin
+      - DB_PASSWORD=development_password
+      - DB_BACKUP_PATH=/usr/src/app/backups
+      # Override email settings for development
+      - EMAIL_ENABLED=${DEV_EMAIL_ENABLED:-false}
+      - ENABLE_AUTH=${DEV_ENABLE_AUTH:-true}
+      # Development database
+      - JWT_SECRET=development-secret-change-in-production
+      - SESSION_SECRET=development-session-secret
+    ports:
+      - "3000:3000"    # Direct access for local development
+      - "9229:9229"    # Node.js debugger port
     restart: unless-stopped
-    command: nodemon --watch . --ext js,json,html,css --ignore '*.db' --ignore 'uploads/*' server.js
+    command: npm run dev
     networks:
       - dc-network
-    # Remove external port mapping since nginx will proxy
-    expose:
-      - "3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
+  # PostgreSQL database (primary database)
+  postgres:
+    image: postgres:15-alpine
+    container_name: dc-countdown-postgres
+    environment:
+      - POSTGRES_DB=dc_migration
+      - POSTGRES_USER=dc_admin
+      - POSTGRES_PASSWORD=development_password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./src/database/migrations/postgres:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - dc-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dc_admin -d dc_migration"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional: Redis for session/cache management
+  redis:
+    image: redis:7-alpine
+    container_name: dc-countdown-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - dc-network
+    profiles:
+      - with-redis
+
+  # Mailhog for email testing (catches all emails in development)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: dc-countdown-mailhog
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI
+    networks:
+      - dc-network
+    profiles:
+      - with-mailhog
+
+  # Optional: Nginx Proxy Manager for SSL in development
   nginx-proxy-manager:
     image: 'jc21/nginx-proxy-manager:latest'
     container_name: nginx-proxy-manager
     restart: unless-stopped
     ports:
-      - '80:80'     # Public HTTP Port
-      - '443:443'   # Public HTTPS Port
-      - '81:81'     # Admin Web Port
+      - '80:80'      # Public HTTP Port
+      - '443:443'    # Public HTTPS Port
+      - '81:81'      # Admin Web Port
     volumes:
       - nginx-data:/data
       - nginx-letsencrypt:/etc/letsencrypt
     networks:
       - dc-network
     environment:
-      # Uncomment to disable IPV6
       DISABLE_IPV6: 'true'
+    profiles:
+      - with-nginx
+
+  # pgAdmin for PostgreSQL management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: dc-countdown-pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@tsr.com
+      - PGADMIN_DEFAULT_PASSWORD=Admin123!
+      - PGADMIN_CONFIG_SERVER_MODE=False
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - dc-network
+    depends_on:
+      - postgres
+
+  # Optional: Adminer for database management (works with SQLite, PostgreSQL, MySQL)
+  adminer:
+    image: adminer:latest
+    container_name: dc-countdown-adminer
+    ports:
+      - "8080:8080"
+    networks:
+      - dc-network
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+    profiles:
+      - with-adminer
 
 networks:
   dc-network:
@@ -49,6 +154,20 @@ networks:
 
 volumes:
   db-data:
+    driver: local
   uploads-data:
+    driver: local
+  logs-data:
+    driver: local
+  backups-data:
+    driver: local
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
   nginx-data:
+    driver: local
   nginx-letsencrypt:
+    driver: local
+  pgadmin-data:
+    driver: local

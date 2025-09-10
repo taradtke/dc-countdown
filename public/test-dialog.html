@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dialog</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Test Critical Item Dialog</h1>
+        <button class="btn btn-primary" onclick="testDialog()">Test Dialog</button>
+    </div>
+
+    <script>
+        function testDialog() {
+            console.log('Button clicked!');
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'confirm-dialog-overlay';
+            
+            const dialog = document.createElement('div');
+            dialog.className = 'confirm-dialog';
+            dialog.style.minWidth = '500px';
+            
+            dialog.innerHTML = `
+                <h3>Test Dialog</h3>
+                <p>If you can see this, the dialog CSS is working!</p>
+                <div class="confirm-dialog-buttons">
+                    <button class="btn btn-secondary" onclick="closeTestDialog()">Close</button>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            document.body.appendChild(dialog);
+            
+            console.log('Dialog created!');
+            console.log('Overlay:', overlay);
+            console.log('Dialog:', dialog);
+        }
+        
+        function closeTestDialog() {
+            document.querySelector('.confirm-dialog-overlay')?.remove();
+            document.querySelector('.confirm-dialog')?.remove();
+        }
+    </script>
+</body>
+</html>

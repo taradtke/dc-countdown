@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSR DC Move Project - Countdown</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="logo">TSR</h1>
+            <h2 class="tagline">DC Move Project Countdown</h2>
+        </header>
+        
+        <main class="countdown-container">
+            <div class="countdown-header">
+                <h3>Project Deadline</h3>
+                <p class="target-date">November 20, 2025 at 12:00 PM CDT</p>
+            </div>
+            
+            <div class="countdown-display">
+                <div class="time-unit">
+                    <span id="days" class="time-value">00</span>
+                    <span class="time-label">Days</span>
+                </div>
+                <div class="time-unit">
+                    <span id="hours" class="time-value">00</span>
+                    <span class="time-label">Hours</span>
+                </div>
+                <div class="time-unit">
+                    <span id="minutes" class="time-value">00</span>
+                    <span class="time-label">Minutes</span>
+                </div>
+                <div class="time-unit">
+                    <span id="seconds" class="time-value">00</span>
+                    <span class="time-label">Seconds</span>
+                </div>
+            </div>
+        </main>
+
+        <section class="migration-items">
+            <h3 class="section-title">Migration Items & Required Completion Rates</h3>
+            <div class="items-grid">
+                <div class="item-card" data-quantity="240" data-unit="Servers">
+                    <div class="item-header">
+                        <span class="item-icon">🖥️</span>
+                        <h4>Servers</h4>
+                    </div>
+                    <div class="item-stats">
+                        <div class="quantity">240 remaining</div>
+                        <div class="rate" id="rate-servers">Calculating...</div>
+                    </div>
+                </div>
+
+                <div class="item-card" data-quantity="136" data-unit="VLANs">
+                    <div class="item-header">
+                        <span class="item-icon">🔗</span>
+                        <h4>VLANs</h4>
+                    </div>
+                    <div class="item-stats">
+                        <div class="quantity">136 remaining</div>
+                        <div class="rate" id="rate-vlans">Calculating...</div>
+                    </div>
+                </div>
+
+                <div class="item-card" data-quantity="20" data-unit="Public ISP Networks">
+                    <div class="item-header">
+                        <span class="item-icon">🌐</span>
+                        <h4>Public ISP Networks</h4>
+                    </div>
+                    <div class="item-stats">
+                        <div class="quantity">20 remaining</div>
+                        <div class="rate" id="rate-networks">Calculating...</div>
+                    </div>
+                </div>
+
+                <div class="item-card" data-quantity="2" data-unit="Firewall Clusters">
+                    <div class="item-header">
+                        <span class="item-icon">🔥</span>
+                        <h4>Firewall Clusters</h4>
+                    </div>
+                    <div class="item-stats">
+                        <div class="quantity">2 remaining</div>
+                        <div class="rate" id="rate-firewalls">Calculating...</div>
+                    </div>
+                </div>
+
+                <div class="item-card" data-quantity="6" data-unit="Colo/Shared Customers">
+                    <div class="item-header">
+                        <span class="item-icon">🏢</span>
+                        <h4>Colo/Shared Customers</h4>
+                    </div>
+                    <div class="item-stats">
+                        <div class="quantity">6 remaining</div>
+                        <div class="rate" id="rate-customers">Calculating...</div>
+                    </div>
+                </div>
+
+                <div class="item-card" data-quantity="2" data-unit="Carrier NNIs">
+                    <div class="item-header">
+                        <span class="item-icon">🔌</span>
+                        <h4>Carrier NNIs</h4>
+                    </div>
+                    <div class="item-stats">
+                        <div class="quantity">2 remaining</div>
+                        <div class="rate" id="rate-nnis">Calculating...</div>
+                    </div>
+                </div>
+
+                <div class="item-card" data-quantity="10" data-unit="Carrier P2P Circuits">
+                    <div class="item-header">
+                        <span class="item-icon">📡</span>
+                        <h4>Carrier P2P Circuits</h4>
+                    </div>
+                    <div class="item-stats">
+                        <div class="quantity">10 remaining</div>
+                        <div class="rate" id="rate-circuits">Calculating...</div>
+                    </div>
+                </div>
+
+                <div class="item-card" data-quantity="5" data-unit="Nutanix Nodes">
+                    <div class="item-header">
+                        <span class="item-icon">💾</span>
+                        <h4>Nutanix Nodes</h4>
+                    </div>
+                    <div class="item-stats">
+                        <div class="quantity">5 remaining</div>
+                        <div class="rate" id="rate-nutanix">Calculating...</div>
+                    </div>
+                </div>
+
+                <div class="item-card" data-quantity="75" data-unit="Voice System VMs">
+                    <div class="item-header">
+                        <span class="item-icon">📞</span>
+                        <h4>Voice System VMs</h4>
+                    </div>
+                    <div class="item-stats">
+                        <div class="quantity">75 remaining</div>
+                        <div class="rate" id="rate-voice">Calculating...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="leaderboard-preview">
+            <div class="leaderboard-header">
+                <h3 class="section-title">Top Engineers</h3>
+                <a href="tracking.html#leaderboard" class="btn btn-primary">View Full Leaderboard</a>
+            </div>
+            <div class="leaderboard-grid">
+                <div id="leaderboard-content" class="loading">
+                    Loading leaderboard...
+                </div>
+            </div>
+        </section>
+        
+        <div class="actions-section">
+            <a href="tracking.html" class="btn btn-primary">Go to Tracking Dashboard</a>
+        </div>
+        
+        <div class="user-controls">
+            <span id="user-info"></span>
+            <button class="btn btn-secondary logout-btn">Logout</button>
+        </div>
+        
+        <footer>
+            <p>&copy; 2025 TSR. All rights reserved.</p>
+        </footer>
+    </div>
+    
+    <script src="js/auth.js"></script>
+    <script src="js/countdown.js"></script>
+</body>
+</html>

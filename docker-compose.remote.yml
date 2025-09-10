@@ -1,0 +1,204 @@
+version: '3.8'
+
+# Remote Development / Staging Configuration
+# Use this for development on remote servers or staging environments
+
+services:
+  # Application with remote debugging enabled
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: dc-countdown-remote
+    volumes:
+      # Code syncing via Docker volumes (not bind mounts for remote)
+      - app-code:/usr/src/app
+      - db-data:/usr/src/app/data
+      - uploads-data:/usr/src/app/uploads
+      - logs-data:/usr/src/app/logs
+      - backups-data:/usr/src/app/backups
+    env_file:
+      - .env.staging
+    environment:
+      - NODE_ENV=staging
+      - PORT=3000
+      - DB_PATH=/usr/src/app/data/migration.db
+      # Remote debugging configuration
+      - NODE_OPTIONS=--inspect=0.0.0.0:9229
+    ports:
+      - "3000:3000"     # Application
+      - "9229:9229"     # Remote debugging
+    restart: unless-stopped
+    networks:
+      - dc-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dc-app.rule=Host(`dc.staging.yourdomain.com`)"
+      - "traefik.http.services.dc-app.loadbalancer.server.port=3000"
+
+  # Traefik reverse proxy with automatic SSL
+  traefik:
+    image: traefik:v2.10
+    container_name: dc-traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@yourdomain.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      # Staging Let's Encrypt (for testing)
+      - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+    networks:
+      - dc-network
+    restart: unless-stopped
+
+  # PostgreSQL for staging
+  postgres:
+    image: postgres:15-alpine
+    container_name: dc-postgres-staging
+    environment:
+      - POSTGRES_DB=dc_migration_staging
+      - POSTGRES_USER=dc_admin
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-staging_password}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - dc-network
+    restart: unless-stopped
+
+  # Redis for session management
+  redis:
+    image: redis:7-alpine
+    container_name: dc-redis-staging
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-staging_redis_pass}
+    volumes:
+      - redis-data:/data
+    networks:
+      - dc-network
+    restart: unless-stopped
+
+  # Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: dc-prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - dc-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: dc-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=redis-datasource
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    ports:
+      - "3001:3000"
+    networks:
+      - dc-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # Log aggregation with Loki
+  loki:
+    image: grafana/loki:latest
+    container_name: dc-loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - dc-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # Backup service
+  backup:
+    image: alpine:latest
+    container_name: dc-backup
+    volumes:
+      - db-data:/data:ro
+      - backups-data:/backups
+      - ./scripts/backup.sh:/backup.sh:ro
+    command: sh -c "apk add --no-cache sqlite && crond -f"
+    environment:
+      - BACKUP_SCHEDULE=0 2 * * *  # Daily at 2 AM
+    networks:
+      - dc-network
+    restart: unless-stopped
+    profiles:
+      - with-backup
+
+  # Code sync service for remote development
+  code-sync:
+    image: eugenmayer/unison:latest
+    container_name: dc-code-sync
+    environment:
+      - UNISON_DIR=/data
+      - UNISON_UID=1000
+      - UNISON_GID=1000
+    ports:
+      - "5000:5000"
+    volumes:
+      - app-code:/data
+    networks:
+      - dc-network
+    profiles:
+      - with-sync
+
+networks:
+  dc-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+volumes:
+  app-code:
+    driver: local
+  db-data:
+    driver: local
+  uploads-data:
+    driver: local
+  logs-data:
+    driver: local
+  backups-data:
+    driver: local
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  letsencrypt:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  loki-data:
+    driver: local

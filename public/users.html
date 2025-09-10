@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - DC Migration System</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .users-container {
+            padding: var(--spacing-lg);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .users-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-xl);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 2px solid var(--tsr-gray-200);
+        }
+
+        .users-table {
+            width: 100%;
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        .user-row {
+            transition: background-color 0.2s;
+        }
+
+        .user-row:hover {
+            background-color: var(--tsr-gray-50);
+        }
+
+        .user-status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: var(--tsr-success-light);
+            color: var(--tsr-success);
+        }
+
+        .status-inactive {
+            background: var(--tsr-error-light);
+            color: var(--tsr-error);
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            background: var(--tsr-primary-light);
+            color: white;
+        }
+
+        .role-admin {
+            background: var(--tsr-primary-dark);
+        }
+
+        .role-manager {
+            background: var(--tsr-primary-light);
+        }
+
+        .role-engineer {
+            background: #6c757d;
+        }
+
+        .role-user {
+            background: var(--tsr-gray-500);
+        }
+
+        .user-actions {
+            display: flex;
+            gap: var(--spacing-xs);
+        }
+
+        .user-actions button {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .user-form {
+            display: grid;
+            gap: var(--spacing-md);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            font-weight: 500;
+            color: var(--tsr-gray-700);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: var(--spacing-sm);
+            border: 1px solid var(--tsr-gray-300);
+            border-radius: var(--border-radius-sm);
+            font-size: var(--font-size-base);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--tsr-primary-light);
+            box-shadow: 0 0 0 3px rgba(69, 123, 157, 0.1);
+        }
+
+        .form-checkbox {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .form-checkbox input[type="checkbox"] {
+            width: auto;
+        }
+
+        .password-display {
+            background: var(--tsr-gray-100);
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+            font-family: monospace;
+            margin-top: var(--spacing-md);
+        }
+
+        .nav-link.active {
+            background: var(--tsr-primary-dark);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>DC Migration System</h1>
+                <span class="nav-subtitle">User Management</span>
+            </div>
+            <div class="nav-menu">
+                <a href="/" class="nav-link">Dashboard</a>
+                <a href="/tracking.html" class="nav-link">Tracking</a>
+                <a href="/users.html" class="nav-link active">Users</a>
+                <span id="user-info" class="nav-user"></span>
+                <button class="btn btn-secondary btn-sm logout-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="users-container">
+        <div class="users-header">
+            <h2>User Management</h2>
+            <button class="btn btn-primary" onclick="showAddUserDialog()">
+                + Add New User
+            </button>
+        </div>
+
+        <!-- User Statistics -->
+        <div class="stats-grid" style="margin-bottom: var(--spacing-xl);">
+            <div class="stat-card">
+                <div class="stat-value" id="total-users">0</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="active-users">0</div>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-engineers">0</div>
+                <div class="stat-label">Engineers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-admins">0</div>
+                <div class="stat-label">Administrators</div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="table-container">
+            <table class="users-table data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Engineer</th>
+                        <th>Status</th>
+                        <th>Last Login</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="users-tbody">
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px;">
+                            Loading users...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/auth.js"></script>
+    <script src="/js/users.js"></script>
+</body>
+</html>

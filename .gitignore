@@ -2,4 +2,47 @@ node_modules/
 *.db
 uploads/
 .DS_Store
-npm-debug.log*backups/
+npm-debug.log*
+backups/
+logs/
+*.log
+
+# Environment files (never commit these)
+.env
+.env.local
+.env.staging
+.env.production
+
+# Keep example files
+!.env.example
+!.env.development
+
+# Archive (remove this line if you want to keep archive in git)
+# archive/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+Thumbs.db
+
+# Build files
+dist/
+build/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Docker volumes
+data/
+postgres-data/
+redis-data/
+
+# Temporary files
+*.tmp
+temp/
+tmp/

@@ -1,22 +1,36 @@
 FROM node:18-alpine
 
-# Install nodemon globally for development
-RUN npm install -g nodemon
+# Install build dependencies and development tools
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    curl \
+    git \
+    bash
 
 # Create app directory
 WORKDIR /usr/src/app
 
+# Create necessary directories with proper permissions
+RUN mkdir -p uploads logs backups data && \
+    chmod -R 755 /usr/src/app
+
+# Install nodemon globally for hot reload
+RUN npm install -g nodemon
+
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including devDependencies)
-RUN npm install
+# Install all dependencies (including dev dependencies)
+RUN npm ci && npm cache clean --force
 
-# Create necessary directories
-RUN mkdir -p uploads data
+# Expose ports
+EXPOSE 3000 9229
 
-# Expose port
-EXPOSE 3000
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {r.statusCode === 200 ? process.exit(0) : process.exit(1)})" || exit 1
 
-# Use nodemon for hot reload in development
-CMD ["nodemon", "server.js"]
+# Development command with debugging enabled
+CMD ["nodemon", "--inspect=0.0.0.0:9229", "--watch", "src", "--watch", "public", "--ext", "js,json,html,css", "--ignore", "*.db", "--ignore", "uploads/*", "--ignore", "logs/*", "--legacy-watch", "src/app.js"]

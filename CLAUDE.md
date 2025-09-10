@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TSR DC Migration Countdown & Tracking System - A real-time data center migration tracker with a hard deadline of November 20, 2025. The system tracks migration progress for servers, VLANs, networks, voice systems, carrier circuits, public networks, carrier NNIs, colo customers, and critical items with dependency management and engineer performance tracking.
+TSR DC Migration Countdown & Tracking System v2.0 - An enterprise-grade data center migration tracker with authentication, automated email notifications, and comprehensive reporting. Tracks migration progress for servers, VLANs, networks, voice systems, carrier circuits, public networks, carrier NNIs, colo customers, and critical items with a hard deadline of November 20, 2025.
 
 ## Essential Commands
 
@@ -93,15 +93,15 @@ Each asset type has specific completion requirements tracked in SQLite:
 - **carrier_nnis**: Completed when `cutover_completed = 1`
 
 ### Frontend Architecture
-Two separate interfaces communicate with the same backend:
+The frontend uses a modular architecture with authentication support:
 
-1. **index.html/countdown.js**: Live countdown dashboard
+1. **Live Dashboard** (`public/index.html`):
    - Real-time countdown to November 20, 2025
    - Polls `/api/stats` every 30 seconds
    - Calculates required daily/hourly completion rates
    - Progress bars for each asset type
 
-2. **tracking.html/tracking.js**: Management dashboard
+2. **Management Interface** (`public/tracking.html`):
    - 10-tab interface for all asset types
    - Inline editing with immediate database updates
    - CSV import functionality per entity type
@@ -109,10 +109,11 @@ Two separate interfaces communicate with the same backend:
    - Customer management and asset linking
    - Critical items tracking with priority levels
    - Dependency visualization
+   - JWT authentication integration
 
 ### Critical Business Logic
 
-**Dynamic Completion Rate Calculation** (`countdown.js`):
+**Dynamic Completion Rate Calculation**:
 ```javascript
 // Total hours remaining until deadline
 const totalHours = (daysRemaining * 24) + hoursRemaining + (minutesRemaining / 60);
@@ -120,7 +121,7 @@ const totalHours = (daysRemaining * 24) + hoursRemaining + (minutesRemaining / 6
 const ratePerDay = quantity / totalDays;
 ```
 
-**Engineer Assignment**: All assets can be assigned to engineers from centralized list (`engineers.js`)
+**Engineer Assignment**: All assets can be assigned to engineers managed through the User model with `is_engineer` flag
 
 **Customer Asset Linking**: Assets linked via `customer_assets` junction table with type-specific references
 
@@ -147,7 +148,7 @@ Database path is configurable via environment variable:
 - Local: `DB_PATH=./migration.db`
 - Docker: `DB_PATH=/usr/src/app/data/migration.db`
 
-The Database class (`database.js`) automatically creates/migrates tables on initialization.
+The Database singleton (`src/database/Database.js`) handles all database operations with automatic migration support.
 
 ### CSV Import Format Requirements
 

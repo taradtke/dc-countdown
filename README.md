@@ -1,256 +1,345 @@
-# TSR DC Migration Countdown & Tracking System
+# DC Migration System v2.0
 
-A comprehensive web application for tracking data center migration progress with real-time countdown, task management, and progress monitoring.
+A comprehensive, enterprise-grade data center migration tracking system with authentication, automated email notifications, and real-time reporting.
 
-## Features
+## 🚀 Features
 
-- **Real-time Countdown**: Visual countdown to migration deadline (November 20, 2025)
-- **Migration Tracking Dashboard**: Track progress for servers, VLANs, networks, voice systems, and colo customers
-- **CSV Import**: Bulk import migration items from CSV files
-- **Progress Monitoring**: Real-time progress bars and completion statistics
-- **Task Management**: Track individual tasks with engineer assignment
-- **Live Updates**: Countdown automatically updates with backend data
+### Core Functionality
+- **Multi-Entity Tracking**: Servers, VLANs, Networks, Voice Systems, Colo Customers, Carrier Circuits, Public Networks, Carrier NNIs
+- **Real-time Dashboard**: Live countdown to migration deadline (November 20, 2025)
+- **Dependency Management**: Track complex relationships between migration assets
+- **Engineer Assignment**: Assign and track engineer workloads
+- **CSV Import/Export**: Bulk data management capabilities
 
-## Quick Start
+### New in v2.0
+- **User Authentication**: JWT-based authentication with role-based access control
+- **Email Notifications**: Automated reminders and reports via Postmark API
+- **Daily Reports**: Automated daily progress reports to managers
+- **Leaderboard**: Engineer performance tracking and gamification
+- **Advanced Reporting**: Weekly digests, completion notifications, critical alerts
+- **Improved Architecture**: Modular design with proper separation of concerns
+- **Production Ready**: Docker support, health checks, logging, error handling
 
-### Using Docker (Recommended)
+## 📋 Prerequisites
 
-#### Development Setup
+- Node.js 16+ and npm 8+
+- SQLite3
+- Docker and Docker Compose (optional)
+- Postmark API account (for email features)
 
-1. Clone the repository:
+## 🛠️ Installation
+
+### Local Development
+
+1. **Clone the repository**
 ```bash
 git clone <repository-url>
 cd dc-countdown
 ```
 
-2. Start the development environment:
-```bash
-docker-compose -f docker-compose.dev.yml up
-```
-
-3. Access the application:
-   - Countdown Dashboard: http://localhost:3000
-   - Tracking Dashboard: http://localhost:3000/tracking.html
-
-#### Production Setup
-
-1. Build and start the production environment:
-```bash
-docker-compose up -d
-```
-
-2. Access the application:
-   - Main Application: http://localhost (served via nginx)
-   - Direct Node.js Access: http://localhost:3000
-
-### Manual Setup (Without Docker)
-
-1. Install dependencies:
+2. **Install dependencies**
 ```bash
 npm install
 ```
 
-2. Start the server:
+3. **Configure environment**
 ```bash
-# Development mode with hot reload
-npm run dev
-
-# Production mode
-npm start
+cp .env.example .env
+# Edit .env with your configuration
 ```
 
-3. Access the application:
-   - Countdown Dashboard: http://localhost:3000
-   - Tracking Dashboard: http://localhost:3000/tracking.html
-
-## Data Import
-
-### CSV Format Requirements
-
-#### Servers CSV
-```csv
-Customer,VM Name,Host,IP Addresses,Cores,Memory Capacity,Storage Used (GiB),Storage Provisioned (GiB)
-```
-
-#### VLANs CSV
-```csv
-VLAN ID,Name,Description,Network,Gateway
-```
-
-#### Networks CSV
-```csv
-Network Name,Provider,Circuit ID,Bandwidth
-```
-
-#### Voice Systems CSV
-```csv
-Customer,VM Name,System Type,Extension Count
-```
-
-#### Colo Customers CSV
-```csv
-Customer Name,Rack Location,New Cabinet Number,Equipment Count,Power Usage
-```
-
-### Importing Data
-
-1. Navigate to the Tracking Dashboard
-2. Select the appropriate tab (Servers, VLANs, etc.)
-3. Click "Import CSV"
-4. Select your CSV file
-5. Data will be automatically imported and displayed
-
-## Docker Commands
-
-### Development
-
+4. **Run database migrations**
 ```bash
-# Start development environment
-docker-compose -f docker-compose.dev.yml up
+npm run migrate
+```
 
-# Start in background
-docker-compose -f docker-compose.dev.yml up -d
+5. **Start the application**
+```bash
+npm run dev  # Development with hot reload
+# or
+npm start    # Production mode
+```
 
-# View logs
-docker-compose -f docker-compose.dev.yml logs -f
+### Docker Deployment
 
-# Stop containers
-docker-compose -f docker-compose.dev.yml down
+1. **Configure environment**
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
 
-# Rebuild after changes
+2. **Build and run with Docker Compose**
+```bash
+# Development
 docker-compose -f docker-compose.dev.yml up --build
-```
 
-### Production
-
-```bash
-# Start production environment
+# Production
 docker-compose up -d
 
-# Stop production environment
-docker-compose down
-
-# View logs
-docker-compose logs -f
-
-# Rebuild images
-docker-compose build
+# Production with Nginx
+docker-compose --profile with-nginx up -d
 ```
 
-### Data Persistence
+## 🔧 Configuration
 
-Docker volumes ensure data persistence:
-- Database: Stored in `db-data` volume
-- Uploads: Stored in `uploads-data` volume
+### Environment Variables
 
-To backup data:
-```bash
-# Backup database
-docker cp dc-countdown-dev:/usr/src/app/data/migration.db ./backup-migration.db
-
-# Backup uploads
-docker cp dc-countdown-dev:/usr/src/app/uploads ./backup-uploads
-```
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and configure:
+Key configuration options in `.env`:
 
 ```env
-NODE_ENV=development
-PORT=3000
-DB_PATH=./migration.db  # Local development
-# DB_PATH=/usr/src/app/data/migration.db  # Docker
+# Authentication
+JWT_SECRET=your-secure-secret-key
+ENABLE_AUTH=true
+
+# Email (Postmark)
+POSTMARK_API_TOKEN=your-postmark-token
+POSTMARK_FROM_EMAIL=noreply@yourdomain.com
+EMAIL_ENABLED=true
+DAILY_REPORT_ENABLED=true
+DAILY_REPORT_TIME=08:00
+
+# Database
+DB_PATH=./migration.db
+DB_BACKUP_PATH=./backups
+
+# System
+MIGRATION_DEADLINE=2025-11-20T00:00:00
+TIMEZONE=America/New_York
 ```
 
-## API Endpoints
+### Default Admin Account
 
-### Statistics
-- `GET /api/stats` - Get overall migration statistics
+On first run, the system creates a default admin account:
+- Email: `admin@example.com`
+- Password: `changeme123`
 
-### Servers
-- `GET /api/servers` - List all servers
-- `POST /api/servers/import` - Import servers from CSV
-- `PUT /api/servers/:id` - Update server status
+**⚠️ Change this immediately after first login!**
 
-### VLANs
-- `GET /api/vlans` - List all VLANs
-- `POST /api/vlans/import` - Import VLANs from CSV
-- `PUT /api/vlans/:id` - Update VLAN status
+## 📚 API Documentation
 
-### Networks
-- `GET /api/networks` - List all networks
-- `POST /api/networks/import` - Import networks from CSV
-- `PUT /api/networks/:id` - Update network status
+### Authentication Endpoints
 
-### Voice Systems
-- `GET /api/voice-systems` - List all voice systems
-- `POST /api/voice-systems/import` - Import voice systems from CSV
-- `PUT /api/voice-systems/:id` - Update voice system status
-
-### Colo Customers
-- `GET /api/colo-customers` - List all colo customers
-- `POST /api/colo-customers/import` - Import colo customers from CSV
-- `PUT /api/colo-customers/:id` - Update colo customer status
-
-## Troubleshooting
-
-### Port Already in Use
-If port 3000 is already in use:
-```bash
-# Change port in docker-compose.yml
-ports:
-  - "3001:3000"  # Use port 3001 instead
+```
+POST   /api/auth/login         # Login with email/password
+POST   /api/auth/register      # Register new user
+POST   /api/auth/refresh       # Refresh JWT token
+POST   /api/auth/logout        # Logout user
 ```
 
-### Database Issues
-If you need to reset the database:
-```bash
-# Stop containers
-docker-compose down
+### Resource Endpoints
 
-# Remove database volume
-docker volume rm dc-countdown_db-data
+All resource endpoints follow RESTful patterns:
 
-# Restart containers
-docker-compose up
+```
+GET    /api/{resource}         # List all (paginated)
+GET    /api/{resource}/:id     # Get single item
+POST   /api/{resource}         # Create new item
+PUT    /api/{resource}/:id     # Update item
+DELETE /api/{resource}/:id     # Delete item
+POST   /api/{resource}/import  # Import from CSV
+GET    /api/{resource}/export  # Export to CSV
 ```
 
-### Permission Issues
-If you encounter permission issues with volumes:
-```bash
-# Fix permissions
-docker exec dc-countdown-dev chown -R node:node /usr/src/app/data
-docker exec dc-countdown-dev chown -R node:node /usr/src/app/uploads
+Resources: `servers`, `vlans`, `networks`, `voice-systems`, `colo-customers`, `carrier-circuits`, `public-networks`, `carrier-nnis`, `critical-items`
+
+### Reports & Analytics
+
+```
+GET    /api/stats              # Overall statistics
+GET    /api/reports/daily      # Generate daily report
+GET    /api/reports/weekly     # Generate weekly digest
+GET    /api/reports/leaderboard # Engineer leaderboard
 ```
 
-## Development
+## 🏗️ Project Structure
 
-### Project Structure
 ```
 dc-countdown/
-├── server.js           # Express server
-├── database.js         # SQLite database handler
-├── index.html          # Countdown dashboard
-├── tracking.html       # Tracking dashboard
-├── countdown.js        # Countdown logic
-├── tracking.js         # Tracking interface logic
-├── styles.css          # Countdown styles
-├── tracking-styles.css # Tracking dashboard styles
-├── Dockerfile          # Production Docker image
-├── Dockerfile.dev      # Development Docker image
-├── docker-compose.yml  # Production compose
-├── docker-compose.dev.yml # Development compose
-└── nginx.conf          # Nginx configuration
+├── src/
+│   ├── app.js                 # Main application entry
+│   ├── config/                # Configuration management
+│   ├── models/                # Data models (extends BaseModel)
+│   ├── services/              # Business logic services
+│   ├── routes/                # API route definitions
+│   ├── middleware/            # Express middleware
+│   ├── database/              
+│   │   ├── Database.js        # Database singleton
+│   │   ├── migrations/        # SQL migration files
+│   │   └── migrate.js         # Migration runner
+│   └── utils/                 # Utility functions
+├── public/                    # Frontend static files
+├── uploads/                   # File uploads
+├── logs/                      # Application logs
+├── backups/                   # Database backups
+└── docker-compose.yml         # Docker configuration
 ```
 
-### Making Changes
+## 🔐 Security Features
 
-1. The development environment uses volume mounts for hot reload
-2. Changes to HTML/CSS/JS files are reflected immediately
-3. Changes to server.js require nodemon to restart (automatic in dev mode)
-4. Database schema changes require container restart
+- **JWT Authentication**: Secure token-based authentication
+- **Role-Based Access Control**: Admin, Manager, Engineer, User roles
+- **Password Hashing**: BCrypt with configurable rounds
+- **Rate Limiting**: Configurable request limits
+- **Helmet.js**: Security headers
+- **Input Validation**: Request validation middleware
+- **SQL Injection Protection**: Parameterized queries
+- **XSS Protection**: Content Security Policy
 
-## License
+## 📧 Email Notifications
 
-© 2025 TSR. All rights reserved.
+### Automated Emails
+
+1. **Daily Reports**: Sent to managers at configured time
+2. **Engineer Reminders**: Sent based on deadline proximity
+3. **Completion Notifications**: Sent when items are marked complete
+4. **Critical Alerts**: Sent for high-priority items
+5. **Weekly Digests**: Summary of week's progress
+
+### Manual Email Triggers
+
+```bash
+# Test email configuration
+curl -X POST http://localhost:3000/api/reports/test-email \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Trigger daily report manually
+curl -X POST http://localhost:3000/api/reports/trigger-daily \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+## 🗄️ Database Management
+
+### Backup & Restore
+
+```bash
+# Create backup
+npm run backup
+
+# Restore from backup
+npm run restore
+# Select backup file when prompted
+
+# Docker backup
+docker exec dc-countdown-app npm run backup
+```
+
+### Migrations
+
+```bash
+# Run pending migrations
+npm run migrate
+
+# Create new migration
+node src/database/migrate.js create migration-name
+
+# Rollback migrations
+node src/database/migrate.js rollback 1
+```
+
+## 📊 Monitoring
+
+### Health Check
+
+```bash
+curl http://localhost:3000/health
+```
+
+### Logs
+
+```bash
+# Local logs
+tail -f logs/app.log
+
+# Docker logs
+docker-compose logs -f app
+```
+
+### Metrics
+
+Access the stats endpoint for real-time metrics:
+```
+GET /api/stats
+```
+
+## 🚀 Deployment
+
+### Production Checklist
+
+1. ✅ Set strong JWT_SECRET
+2. ✅ Configure Postmark API credentials
+3. ✅ Change default admin password
+4. ✅ Enable HTTPS (use Nginx/reverse proxy)
+5. ✅ Set NODE_ENV=production
+6. ✅ Configure backup retention
+7. ✅ Set up monitoring/alerting
+8. ✅ Review rate limiting settings
+
+### Scaling Considerations
+
+- **Database**: Consider PostgreSQL for larger deployments
+- **Caching**: Add Redis for session/cache management
+- **Load Balancing**: Use multiple app instances behind a load balancer
+- **CDN**: Serve static assets via CDN
+- **Queue**: Add job queue for email processing (Bull/RabbitMQ)
+
+## 🧪 Testing
+
+```bash
+# Run tests (when implemented)
+npm test
+
+# Test email configuration
+npm run test:email
+
+# Load testing
+npm run test:load
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## 📝 License
+
+[Your License Here]
+
+## 🆘 Support
+
+For issues and questions:
+- Create an issue in the repository
+- Contact the development team
+- Check the [documentation](./docs)
+
+## 🎯 Roadmap
+
+### Planned Features
+- [ ] WebSocket real-time updates
+- [ ] Advanced dependency visualization
+- [ ] Mobile application
+- [ ] API rate limiting per user
+- [ ] Advanced search and filtering
+- [ ] Audit logging
+- [ ] Two-factor authentication
+- [ ] Custom report builder
+- [ ] Integration with ticketing systems
+- [ ] Automated testing suite
+
+## 🏆 Credits
+
+Built with:
+- Express.js
+- SQLite/PostgreSQL
+- JWT Authentication
+- Postmark Email Service
+- Chart.js
+- Docker
+
+---
+
+**Version**: 2.0.0  
+**Last Updated**: November 2024  
+**Deadline**: November 20, 2025

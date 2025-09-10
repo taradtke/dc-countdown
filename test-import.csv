@@ -1,0 +1,9 @@
+Customer,VM Name,Host,IP Addresses,Cores,Memory Capacity,Storage Used (GiB),Storage Provisioned (GiB)
+Acme Corp,web-server-01,esxi-host-01,192.168.1.10,4,16GB,100,200
+Acme Corporation,db-server-01,esxi-host-02,192.168.1.11,8,32GB,500,1000
+,orphan-server-01,esxi-host-03,192.168.1.12,2,8GB,50,100
+"",orphan-server-02,esxi-host-03,192.168.1.13,2,8GB,50,100
+TechCo LLC,app-server-01,esxi-host-01,192.168.1.14,4,16GB,150,300
+TechCo,app-server-02,esxi-host-02,192.168.1.15,4,16GB,150,300
+Global Systems Inc,mail-server-01,esxi-host-03,192.168.1.16,2,8GB,100,200
+Global Systems Inc.,mail-server-02,esxi-host-03,192.168.1.17,2,8GB,100,200

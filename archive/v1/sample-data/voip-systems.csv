@@ -1,0 +1,87 @@
+Customer,VM Name,System Type,Extension Count,SIP Provider,SIP Delivery Method
+TSR Internal,VOIP-HOSTED-3201,FreePBX,0,,TSR Ingate
+FWA,VOIP-HOSTED-3202,FreePBX,0,,Ingate02
+OTG,VOIP-HOSTED-3203,FreePBX,0,,Ingate01
+American Advantage,VOIP-HOSTED-3204,FreePBX,0,,Ingate01
+Perkins,VOIP-HOSTED-3205,FreePBX,0,,Ingate01
+ARCW,VOIP-HOSTED-3206,FreePBX,0,,Ingate01
+Discount Ramps,VOIP-HOSTED-3207,FreePBX,0,,Ingate01
+TRC,VOIP-HOSTED-3210,FreePBX,0,,Ingate01
+Wells Fargo,VOIP-HOSTED-3403,FreePBX,0,,Ingate01
+Exact Metrology,VOIP-Dgm001,Digium,0,,Direct
+TSR Demo,VOIP-DGM002,Digium,0,,Direct
+Wells Fargo,VOIP-DGM003,Digium,0,,Direct
+Evergreen Pharmacy,VOIP-Dgm004,Digium,0,,Direct
+Lebell Dobroski,VOIP-DGM005,Digium,0,,Direct
+MOGL,VOIP-Dgm007,Digium,0,,Direct
+Sno-Way,VOIP-Dgm008,Digium,0,,Direct
+Bethlehem,VOIP-Dgm009,Digium,0,,Direct
+MidState Insurance,VOIP-DGM010,Digium,0,,Direct
+Archmil,VOIP-Dgm011,Digium,0,,Direct
+Oliver Construction,VOIP-DGM012,Digium,0,,Direct
+United Way,VOIP-DGM013,Digium,0,,Direct
+DSAW,VOIP-dgm014,Digium,0,,Direct
+Inspired Custom Designs,VOIP-Dgm015,Digium,0,,Direct
+Women's Health,VOIP-fpbx001,FreePBX,0,,Direct
+Statewide Insurance,VOIP-fpbx002,FreePBX,0,,Direct
+Debt Advisors,VOIP-fpbx003,FreePBX,0,,Direct
+Boswell Books,VOIP-fpbx004,FreePBX,0,,Direct
+Wolff & Sonderhouse,VOIP-fpbx005,FreePBX,0,,Direct
+Chiropractic Mgmt Services,VOIP-fpbx007,FreePBX,0,,Direct
+Core OI,VOIP-fpbx010,FreePBX,0,,Direct
+Lemon Law,VOIP-fpbx011,FreePBX,0,,Direct
+KMC,VOIP-Fpbx012,FreePBX,0,,Direct
+Unknown,VOIP-fpbx013,FreePBX,0,,Direct
+Unknown,VOIP-fpbx00new,FreePBX,0,,Direct
+TSR Demo,VOIP-demofpbx,FreePBX,0,,Direct
+BVK,VOIP-ST002-Server-2019.voip123.us-BVK,FreePBX,0,,Ingate01
+BVK,VOIP-ST002-BVK Phone,SIP Phone,0,,Ingate01
+BVK,VOIP-ST002-BVK SIP,SIP Gateway,0,,Ingate01
+BVK,ST002-Mobility.voip123.us-BVK,Mobility Router,0,,Ingate01
+BVK,ST002-EG.Voip123.us-BVK,Edge Gateway,0,,Ingate01
+OTG,VOIP-ST003-2019-OTG,FreePBX,0,,Ingate01
+OTG,VOIP-ST003-Phone.voip123.us,SIP Phone,0,,Ingate01
+OTG,VOIP-ST003-SIP.VOIP123.us,SIP Gateway,0,,Ingate01
+OTG,ST003-Mobility.Voip123.us,Mobility Router,0,,Ingate01
+OTG,ST003-EG.VOIP123.US-OTG,Edge Gateway,0,,Ingate01
+Unknown,VOIP-ST004-2019,Mitel,0,,Direct
+Unknown,VOIP-ST004-Phone.voip123.us,SIP Phone,0,,Direct
+Unknown,VOIP-ST004-SIP.VOIP123.US,SIP Gateway,0,,Direct
+Unknown,VOIP-ST004-Phone2,SIP Phone,0,,Direct
+Unknown,ST004-Mobility.voip123.us,Mobility Router,0,,Direct
+Unknown,ST004-EG.voip123.us,Edge Gateway,0,,Direct
+Mandel Group,VOIP-St005-Mandel,Mitel,0,,Direct
+Mandel Group,ST005-SIP,SIP Gateway,0,,Direct
+Vivent Health,VOIP-ST006_Server_2016.Voip123.us-Restore-11-11-24,Mitel,0,,Direct
+Vivent Health,VOIP-ST006-Phone.Voip123.us,SIP Phone,0,,Direct
+Vivent Health,VOIP-ST006-SIP.Voip123.us,SIP Gateway,0,,Direct
+Vivent Health,VOIP-ST006-Phone-2,SIP Phone,0,,Direct
+Vivent Health,VOIP-ST006-DVS,Mitel,0,,Direct
+Vivent Health,ST006-Mobility,Mobility Router,0,,Direct
+Vivent Health,ST006-EG.VOIP123.US,Edge Gateway,0,,Direct
+Milwaukee Electronics,VOIP-MkeElec-st008-hq-11-11-24,Mitel,0,,Direct
+Milwaukee Electronics,VOIP-St008-Phone,SIP Phone,0,,Direct
+Milwaukee Electronics,VOIP-ST008-SIP,SIP Gateway,0,,Direct
+Milwaukee Electronics,VOIP-ST008-Mex-SIP,SIP Gateway,0,,Direct
+Milwaukee Electronics,VOIP-MkeElec-st008-dvs,Mitel,0,,Direct
+Milwaukee Electronics,VOIP-ST008-Mexico2,Mitel,0,,Direct
+Milwaukee Electronics,ST008-Mobility-restore,Mobility Router,0,,Direct
+Milwaukee Electronics,ST008-EdgeGateway,Edge Gateway,0,,Direct
+TRC,VOIP-TRC-ST010,Mitel,0,,Direct
+TRC,VOIP-ST010-Phone,SIP Phone,0,,Direct
+TRC,VOIP-ST010-SIP,SIP Gateway,0,,Direct
+TRC,ST010-Mobility,Mobility Router,0,,Direct
+TRC,ST010-TRC-EGW,Edge Gateway,0,,Direct
+TSR Internal,VOIP-MGMT,Management Server,0,,Direct
+TSR Internal,VOIP-QuickLerts,Notification System,0,,Direct
+TSR Internal,VOIP-TSR-Voice-Fax.voip123.us,Fax Server,0,,Direct
+TSR Internal,VOIP-TSR Hosted Ingate 2019 management server,Ingate Manager,0,,Direct
+TSR Internal,TSR Hosted VOIP Ingate01 (Never Delete),Ingate,0,,Direct
+TSR Internal,TSR VOIP Hosted Ingate02 (Never Delete),Ingate,0,,Direct
+TSR Internal,VOIP-Template Clone 7.9,Template,0,,N/A
+TSR Internal,ST000Mobility.Voip123.us,Mobility Router,0,,Direct
+TSR Internal,EG000.Voip123us,Edge Gateway,0,,Direct
+TSR Internal,TSR-Mitel-2019,Mitel,0,,Direct
+TSR Internal,TSR-Mitel2-2019,Mitel,0,,Direct
+TSR Internal,TSR-Mitel-Sip Trunk Switch,SIP Gateway,0,,Direct
+TSR Internal,TSR-Mitel Phone Switch,Mitel,0,,Direct
