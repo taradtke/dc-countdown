@@ -32,6 +32,7 @@ const customerRoutes = require('./routes/customers');
 const statsRoutes = require('./routes/stats');
 const reportRoutes = require('./routes/reports');
 const userRoutes = require('./routes/users');
+const leaderboardRoutes = require('./routes/leaderboard');
 
 // Import services
 const schedulerService = require('./services/SchedulerService');
@@ -126,6 +127,7 @@ app.use('/api/customers', authenticate, customerRoutes);
 app.use('/api/users', authenticate, userRoutes);
 app.use('/api/stats', optionalAuth, statsRoutes);
 app.use('/api/reports', authenticate, reportRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
 
 // Catch-all route for SPA
 app.get('*', (req, res) => {

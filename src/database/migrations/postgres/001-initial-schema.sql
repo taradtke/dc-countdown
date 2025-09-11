@@ -253,36 +253,80 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Apply update trigger to all tables
-CREATE TRIGGER update_users_timestamp BEFORE UPDATE ON users
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- Apply update trigger to all tables (with existence check)
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_users_timestamp') THEN
+        CREATE TRIGGER update_users_timestamp BEFORE UPDATE ON users
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
 
-CREATE TRIGGER update_servers_timestamp BEFORE UPDATE ON servers
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_servers_timestamp') THEN
+        CREATE TRIGGER update_servers_timestamp BEFORE UPDATE ON servers
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
 
-CREATE TRIGGER update_vlans_timestamp BEFORE UPDATE ON vlans
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_vlans_timestamp') THEN
+        CREATE TRIGGER update_vlans_timestamp BEFORE UPDATE ON vlans
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
 
-CREATE TRIGGER update_networks_timestamp BEFORE UPDATE ON networks
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_networks_timestamp') THEN
+        CREATE TRIGGER update_networks_timestamp BEFORE UPDATE ON networks
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
 
-CREATE TRIGGER update_voice_systems_timestamp BEFORE UPDATE ON voice_systems
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_voice_systems_timestamp') THEN
+        CREATE TRIGGER update_voice_systems_timestamp BEFORE UPDATE ON voice_systems
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
 
-CREATE TRIGGER update_carrier_circuits_timestamp BEFORE UPDATE ON carrier_circuits
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_carrier_circuits_timestamp') THEN
+        CREATE TRIGGER update_carrier_circuits_timestamp BEFORE UPDATE ON carrier_circuits
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
 
-CREATE TRIGGER update_public_networks_timestamp BEFORE UPDATE ON public_networks
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_public_networks_timestamp') THEN
+        CREATE TRIGGER update_public_networks_timestamp BEFORE UPDATE ON public_networks
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
 
-CREATE TRIGGER update_carrier_nnis_timestamp BEFORE UPDATE ON carrier_nnis
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_carrier_nnis_timestamp') THEN
+        CREATE TRIGGER update_carrier_nnis_timestamp BEFORE UPDATE ON carrier_nnis
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
 
-CREATE TRIGGER update_colo_customers_timestamp BEFORE UPDATE ON colo_customers
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_colo_customers_timestamp') THEN
+        CREATE TRIGGER update_colo_customers_timestamp BEFORE UPDATE ON colo_customers
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
 
-CREATE TRIGGER update_critical_items_timestamp BEFORE UPDATE ON critical_items
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_critical_items_timestamp') THEN
+        CREATE TRIGGER update_critical_items_timestamp BEFORE UPDATE ON critical_items
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
 
-CREATE TRIGGER update_customers_timestamp BEFORE UPDATE ON customers
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_customers_timestamp') THEN
+        CREATE TRIGGER update_customers_timestamp BEFORE UPDATE ON customers
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;

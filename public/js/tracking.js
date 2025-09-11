@@ -27,6 +27,21 @@ function authenticatedFetch(url, options = {}) {
     return fetch(url, defaultOptions);
 }
 
+// Safe wrapper for fetching and parsing JSON
+async function safeFetchJSON(url, options = {}) {
+    try {
+        const response = await authenticatedFetch(url, options);
+        if (!response.ok) {
+            console.error(`Request failed: ${url}`, response.status);
+            return null;
+        }
+        return await response.json();
+    } catch (error) {
+        console.error(`Error fetching ${url}:`, error);
+        return null;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initializeTabs();
     
@@ -150,7 +165,11 @@ function setupEventListeners() {
 
 async function loadData() {
     try {
-        const stats = await authenticatedFetch(`${API_URL}/stats`).then(r => r.json());
+        const stats = await safeFetchJSON(`${API_URL}/stats`);
+        if (!stats) {
+            console.error('Failed to load stats');
+            return;
+        }
         updateStats(stats);
         
         switch(currentTab) {
@@ -248,10 +267,15 @@ function updateStats(stats) {
 }
 
 async function loadServers() {
-    const [servers, depCounts] = await Promise.all([
-        authenticatedFetch(`${API_URL}/servers`).then(r => r.json()),
-        authenticatedFetch(`${API_URL}/dependency-counts`).then(r => r.json())
-    ]);
+    const servers = await safeFetchJSON(`${API_URL}/servers`);
+    
+    if (!servers) {
+        console.error('Failed to load servers data');
+        return;
+    }
+    
+    // Dependency counts feature not yet implemented
+    const depCounts = {};
     
     const tbody = document.querySelector('#servers-table tbody');
     tbody.innerHTML = '';
@@ -291,7 +315,7 @@ async function loadServers() {
 async function loadVlans() {
     const [vlans, depCounts] = await Promise.all([
         authenticatedFetch(`${API_URL}/vlans`).then(r => r.json()),
-        authenticatedFetch(`${API_URL}/dependency-counts`).then(r => r.json())
+        Promise.resolve({})
     ]);
     
     const tbody = document.querySelector('#vlans-table tbody');
@@ -323,7 +347,7 @@ async function loadVlans() {
 async function loadCarrierCircuits() {
     const [circuits, depCounts] = await Promise.all([
         authenticatedFetch(`${API_URL}/carrier-circuits`).then(r => r.json()),
-        authenticatedFetch(`${API_URL}/dependency-counts`).then(r => r.json())
+        Promise.resolve({})
     ]);
     const tbody = document.querySelector('#circuits-table tbody');
     tbody.innerHTML = '';
@@ -357,7 +381,7 @@ async function loadCarrierCircuits() {
 async function loadCarrierNnis() {
     const [nnis, depCounts] = await Promise.all([
         authenticatedFetch(`${API_URL}/carrier-nnis`).then(r => r.json()),
-        authenticatedFetch(`${API_URL}/dependency-counts`).then(r => r.json())
+        Promise.resolve({})
     ]);
     
     const tbody = document.querySelector('#nnis-table tbody');
@@ -404,7 +428,7 @@ async function updateCarrierNni(id, field, value) {
 async function loadPublicNetworks() {
     const [networks, depCounts] = await Promise.all([
         authenticatedFetch(`${API_URL}/public-networks`).then(r => r.json()),
-        authenticatedFetch(`${API_URL}/dependency-counts`).then(r => r.json())
+        Promise.resolve({})
     ]);
     const tbody = document.querySelector('#public-networks-table tbody');
     tbody.innerHTML = '';

@@ -4,202 +4,221 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TSR DC Migration Countdown & Tracking System v2.0 - An enterprise-grade data center migration tracker with authentication, automated email notifications, and comprehensive reporting. Tracks migration progress for servers, VLANs, networks, voice systems, carrier circuits, public networks, carrier NNIs, colo customers, and critical items with a hard deadline of November 20, 2025.
+TSR DC Migration Countdown & Tracking System v2.0 - An enterprise-grade data center migration tracker with PostgreSQL database (in Docker) or SQLite (local), JWT authentication, automated email notifications via Postmark, and comprehensive reporting. Tracks migration progress with a hard deadline of November 20, 2025.
 
 ## Essential Commands
 
 ### Development
 ```bash
-# Local development with hot reload
-npm run dev
-
-# Docker development with Nginx Proxy Manager
+# Docker development (recommended) - uses PostgreSQL
 npm run docker:dev:build  # Initial build
 npm run docker:dev        # Subsequent runs
 npm run docker:down       # Stop containers
 
-# Install dependencies
-npm install
+# Local development with hot reload (uses SQLite)
+npm run dev
+
+# Run database migrations (PostgreSQL)
+npm run migrate
+
+# Test email configuration
+npm run test:email
 ```
 
-### Production
+### Testing & Validation
 ```bash
-# Start production server
-npm start
+# No automated tests exist - manual testing only
+# Check application health
+curl http://localhost:3000/health
 
-# Docker production
-docker-compose up -d
+# Verify authentication
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"Admin123!"}'
 ```
 
-### Database Operations
+### Database Management
 ```bash
-# Create backup (auto-timestamped, compressed)
+# Backup database
 npm run backup
-# or ./backup.sh
+./backup.sh  # Alternative
 
 # Restore from backup (interactive)
 npm run restore
-# or ./restore.sh [backup-file]
+./restore.sh [backup-file]  # Alternative
 
-# Reset database
-rm migration.db  # Local
-# or
-docker volume rm dc-countdown_db-data  # Docker
+# Access PostgreSQL (Docker)
+docker exec -it dc-countdown-postgres psql -U dc_admin -d dc_migration
+
+# Access pgAdmin web interface
+# http://localhost:5050
+# Login: admin@tsr.com / Admin123!
 ```
 
-## Architecture Overview
+## Architecture & Key Components
 
-### Data Flow Pattern
-```
-CSV Import → SQLite Database → Express API → Frontend (HTML/JS) → User Updates → Database
-```
+### Database Configuration
+- **Docker**: PostgreSQL 15 (primary database)
+  - Host: postgres, Port: 5432
+  - Database: dc_migration, User: dc_admin
+  - Migrations: `src/database/migrations/postgres/*.sql`
+- **Local**: SQLite (fallback for local development)
+  - Path: `./migration.db`
+  - Migrations: `src/database/migrations/*.sql`
 
-### Complete API Structure
-All entities follow REST patterns with full CRUD operations:
-
-**Core Migration Assets:**
-- `/api/servers` - Server infrastructure
-- `/api/vlans` - VLAN configurations
-- `/api/networks` - Network infrastructure
-- `/api/voice-systems` - Voice/telephony systems
-- `/api/colo-customers` - Colocation customers
-
-**Extended Assets:**
-- `/api/carrier-circuits` - Carrier circuit tracking
-- `/api/public-networks` - Public network configurations
-- `/api/carrier-nnis` - Carrier NNI connections
-- `/api/critical-items` - Priority task management
-
-**Customer & Dependency Management:**
-- `/api/customers` - Customer relationships
-- `/api/customers/:id/assets` - Customer asset linking
-- `/api/dependencies` - Asset dependency mapping
-
-**Analytics & Monitoring:**
-- `/api/stats` - Real-time migration statistics
-- `/api/leaderboard` - Engineer performance metrics
-- `/api/dependency-counts` - Dependency analytics
-
-### Database Schema & Completion Criteria
-Each asset type has specific completion requirements tracked in SQLite:
-
-- **servers**: Completed when `customer_notified_successful_cutover = 1`
-- **vlans**: Completed when `migrated = 1 AND verified = 1`
-- **networks**: Completed when `cutover_completed = 1`
-- **voice_systems**: Completed when `cutover_completed = 1`
-- **colo_customers**: Completed when `migration_completed = 1`
-- **carrier_circuits**: Completed when `cutover_completed = 1`
-- **public_networks**: Completed when `cutover_completed = 1`
-- **carrier_nnis**: Completed when `cutover_completed = 1`
+### Authentication System
+- JWT-based with refresh tokens
+- Default admin: `admin@example.com` / `Admin123!`
+- Roles: admin, manager, engineer, user
+- Middleware: `src/middleware/auth.js`
+- Session management with express-session
 
 ### Frontend Architecture
-The frontend uses a modular architecture with authentication support:
+1. **Public Pages** (no auth required):
+   - `/` (`index.html`) - Live countdown dashboard with emoji icons
+   - `/api/stats` - Public statistics endpoint
+   - `/api/leaderboard` - Public leaderboard data
 
-1. **Live Dashboard** (`public/index.html`):
-   - Real-time countdown to November 20, 2025
-   - Polls `/api/stats` every 30 seconds
-   - Calculates required daily/hourly completion rates
-   - Progress bars for each asset type
-
-2. **Management Interface** (`public/tracking.html`):
-   - 10-tab interface for all asset types
+2. **Protected Pages** (JWT required):
+   - `/tracking.html` - 10-tab management interface
+   - All `/api/*` endpoints except stats/leaderboard
    - Inline editing with immediate database updates
-   - CSV import functionality per entity type
-   - Leaderboard with Chart.js visualizations
-   - Customer management and asset linking
-   - Critical items tracking with priority levels
-   - Dependency visualization
-   - JWT authentication integration
 
-### Critical Business Logic
-
-**Dynamic Completion Rate Calculation**:
+### API Endpoints Pattern
 ```javascript
-// Total hours remaining until deadline
-const totalHours = (daysRemaining * 24) + hoursRemaining + (minutesRemaining / 60);
-// Required rate per day/hour based on remaining items
-const ratePerDay = quantity / totalDays;
+// All resources follow this pattern:
+GET    /api/{resource}         // List all
+GET    /api/{resource}/:id     // Get one
+POST   /api/{resource}         // Create
+PUT    /api/{resource}/:id     // Update
+DELETE /api/{resource}/:id     // Delete
+POST   /api/{resource}/import  // CSV import
+
+// Resources: servers, vlans, networks, voice-systems, colo-customers,
+// carrier-circuits, public-networks, carrier-nnis, critical-items
 ```
 
-**Engineer Assignment**: All assets can be assigned to engineers managed through the User model with `is_engineer` flag
+### Model System
+- Base class: `src/models/BaseModel.js` - provides CRUD operations
+- All models extend BaseModel with schema definitions
+- Database operations use parameterized queries
+- Customer matching: `utils/customerMatcher.js` for fuzzy matching
 
-**Customer Asset Linking**: Assets linked via `customer_assets` junction table with type-specific references
+### CSV Import System
+- Templates in `/csv-templates/` with README
+- Each route handles its own CSV parsing
+- Boolean fields accept: true/false, 1/0, or empty
+- Date format: YYYY-MM-DD
+- Field mapping handles multiple column name variations
 
-### Docker Configuration
+### Recent Field Additions (PostgreSQL migrations 004-005)
+These fields were added to match frontend expectations:
+- **carrier_nnis**: Added carrier_name, circuit_id, interface_type, vlan_range, ip_block, current_device, new_device, migration_status, tested, engineer_assigned
+- **servers**: Added customer_contacted, test_move_date, move_date, backups_verified_working_hycu, backups_setup_verified_working_veeam, firewall_network_cutover, engineer_completed_work
+- **All entities**: Added engineer_completed_work field where missing
 
-**Development** (`docker-compose.dev.yml`):
-- Application container with nodemon hot reload
-- Nginx Proxy Manager for SSL and reverse proxy
-- Shared `dc-network` for container communication
-- Persistent volumes for database and uploads
+## Critical Business Logic
 
-**Production** (`docker-compose.yml`):
-- Optional nginx reverse proxy with caching
-- Profile-based deployment options
-- Static file serving with 1-year cache headers
+### Completion Tracking
+Each entity has specific completion criteria:
+- **servers**: `customer_notified_successful_cutover = true`
+- **vlans**: `migrated = true AND verified = true`
+- **Others**: `cutover_completed = true` or `migration_completed = true`
 
-**Nginx Proxy Manager Access**:
-- Admin panel: `http://server:81`
-- Default credentials: `admin@example.com` / `changeme` (change immediately)
-- Configure proxy: `dc.tsr.ai` → `app:3000`
+### Rate Calculation (`public/js/countdown.js`)
+```javascript
+// Calculates required completion rate based on time remaining
+const totalHours = (daysRemaining * 24) + hoursRemaining + (minutesRemaining / 60);
+const ratePerDay = quantity / (totalHours / 24);
+```
 
-### Database Connection
-Database path is configurable via environment variable:
-- Local: `DB_PATH=./migration.db`
-- Docker: `DB_PATH=/usr/src/app/data/migration.db`
+### Email System (Postmark)
+- Service: `src/services/EmailService.js`
+- Scheduler: `src/services/SchedulerService.js`
+- Templates in EmailService class
+- Daily reports at configured time (DAILY_REPORT_TIME env var)
 
-The Database singleton (`src/database/Database.js`) handles all database operations with automatic migration support.
+## Docker Services
 
-### CSV Import Format Requirements
+### Main Services (always running)
+- **app**: Node.js application (port 3000)
+- **postgres**: PostgreSQL database (port 5432)
+- **pgadmin**: Database admin UI (port 5050)
 
-Each entity type requires specific CSV columns:
+### Optional Services (use profiles)
+- **nginx-proxy-manager**: `--profile with-nginx` (ports 80, 443, 81)
+- **redis**: `--profile with-redis` (port 6379)
+- **mailhog**: `--profile with-mailhog` (ports 1025, 8025)
+- **adminer**: `--profile with-adminer` (port 8080)
 
-- **Servers**: Customer, VM Name, Host, IP Addresses, Cores, Memory Capacity, Storage Used (GiB), Storage Provisioned (GiB)
-- **VLANs**: VLAN ID, Name, Description, Network, Gateway
-- **Networks**: Network Name, Provider, Circuit ID, Bandwidth
-- **Voice Systems**: Customer, VM Name, System Type, Extension Count
-- **Colo Customers**: Customer Name, Rack Location, New Cabinet Number, Equipment Count, Power Usage
-- **Carrier Circuits**: Circuit ID, Provider, Type, Bandwidth, Location A, Location Z
-- **Public Networks**: Network Name, CIDR, Provider, Gateway
-- **Carrier NNIs**: NNI ID, Provider, Type, Bandwidth, Location
+## Environment Variables
 
-Import process uses multer for file handling and csv-parser for parsing with automatic field mapping.
+Critical settings in `.env.development`:
+```env
+# Database (Docker uses PostgreSQL)
+DB_TYPE=postgres
+DB_HOST=postgres
+DB_NAME=dc_migration
+DB_USER=dc_admin
+DB_PASSWORD=development_password
 
-## Key Implementation Details
+# Authentication
+JWT_SECRET=development-secret-change-in-production
+ENABLE_AUTH=true
 
-### Real-time Updates
-- Countdown updates every second (client-side)
-- Statistics refresh every 30 seconds via API polling
-- No WebSocket implementation - uses polling pattern
+# Email (Postmark)
+EMAIL_ENABLED=false  # Set true to enable
+POSTMARK_API_TOKEN=your-token
+DAILY_REPORT_ENABLED=false
+```
 
-### Error Handling
-- Database operations wrapped in promises with try/catch
-- API endpoints return appropriate HTTP status codes
-- Frontend displays alerts on failed operations
+## Common Issues & Solutions
 
-### State Management
-- No frontend framework - vanilla JavaScript
-- Server maintains all state in SQLite database
-- Frontend fetches fresh data on tab switches
+### Frontend not loading data
+- Check authentication: Look for 401 errors in console
+- Verify JWT token in localStorage
+- Check CORS settings in `src/app.js`
 
-### Backup & Restore System
-- **Automated backups** with compression and timestamp
-- **10 backup retention** with automatic cleanup
-- **Interactive restore** with confirmation prompts
-- Works with running or stopped containers
-- Handles both database and uploads
+### CSV import failing
+- Verify column headers match exactly (case-sensitive)
+- Check boolean fields use correct format
+- Ensure file is UTF-8 encoded
+- Review field mappings in route files
 
-### Security Considerations
-- CORS enabled for all origins (adjust for production)
-- No authentication system implemented
-- SQLite database file should be protected in production
-- Nginx Proxy Manager provides SSL via Let's Encrypt
+### Database connection issues
+- PostgreSQL: Check Docker container is running and healthy
+- SQLite: Verify file permissions on migration.db
+- Run migrations: `npm run migrate`
 
-## Important Architectural Decisions
+### Missing icons/emojis
+- Favicon files generated with ImageMagick
+- Emojis used: 🖥️ 🔗 🌐 🔥 🏢 🔌 📡 💾 📞 👥 🚨 🏆
+- Icons served from `/public` directory
 
-1. **No Testing Framework**: Project has no automated tests - manual testing only
-2. **Vanilla JavaScript**: No frontend framework by design for simplicity
-3. **SQLite Database**: Single-file database for portability
-4. **Polling over WebSockets**: Simpler implementation for real-time updates
-5. **Docker-First Development**: Consistent environment across dev/QA/prod
-6. **Nginx Proxy Manager**: Professional SSL and reverse proxy management
+## Development Workflow
+
+1. **Start Docker environment**: `npm run docker:dev:build`
+2. **Access services**:
+   - App: http://localhost:3000
+   - pgAdmin: http://localhost:5050
+3. **Make changes**: Files auto-reload with nodemon
+4. **Test authentication**: Login with admin credentials
+5. **Import test data**: Use CSV templates in `/csv-templates/`
+6. **Check logs**: `docker logs -f dc-countdown-dev`
+
+## Production Deployment
+
+1. Set production environment variables
+2. Change default passwords (admin, database)
+3. Configure Postmark for email
+4. Set up SSL with Nginx Proxy Manager
+5. Configure backup retention
+6. Run with: `docker-compose up -d`
+
+## No Testing Framework
+This project has no automated tests. All testing is manual. Consider testing:
+- Authentication flow
+- CSV imports with sample data
+- Inline editing on tracking page
+- Email notifications (use Mailhog in dev)
+- Backup and restore procedures

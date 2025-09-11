@@ -1,0 +1,4 @@
+Customer,VM Name,Host,IP Addresses,Cores,Memory Capacity,Storage Used (GiB),Storage Provisioned (GiB),Customer Contacted,Test Move Date,Move Date,Backups Verified Working HYCU,Backups Setup Verified Working Veeam,Firewall Network Cutover,Customer Notified Successful Cutover,Assigned Engineer,Engineer Completed Work,Notes
+Acme Corp,web-server-01,esxi-host-01,192.168.1.10,4,16,100,200,false,2025-02-01,2025-02-15,false,false,false,false,John Smith,,Production web server
+Acme Corp,db-server-01,esxi-host-02,192.168.1.20,8,32,500,1000,false,2025-02-01,2025-02-15,false,false,false,false,Jane Doe,,Database server
+Beta Inc,app-server-01,esxi-host-01,192.168.2.10,2,8,50,100,false,2025-03-01,2025-03-15,false,false,false,false,,,Application server

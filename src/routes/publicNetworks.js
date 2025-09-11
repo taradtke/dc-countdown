@@ -89,11 +89,25 @@ router.post('/import', upload.single('csv'), async (req, res) => {
     });
     // Map CSV columns to our model fields
     const mapped = data.map(row => ({
-      network_name: row['Network Name'] || row.network_name || row['Network'] || row.network,
+      network_name: row['Network Name'] || row.network_name,
+      network: row['Network'] || row.network || row['Network Name'] || row.network_name,
       cidr: row['CIDR'] || row.cidr,
       provider: row['Provider'] || row.provider,
       gateway: row['Gateway'] || row.gateway,
-      assigned_engineer: row['Assigned Engineer'] || row.assigned_engineer
+      dns_servers: row['DNS Servers'] || row.dns_servers,
+      customer: row['Customer'] || row.customer,
+      action: row['Action'] || row.action,
+      vlan: row['VLAN'] || row.vlan,
+      current_devices: row['Current Devices'] || row.current_devices,
+      current_interfaces: row['Current Interfaces'] || row.current_interfaces,
+      new_devices: row['New Devices'] || row.new_devices,
+      new_interfaces: row['New Interfaces'] || row.new_interfaces,
+      migrated: row['Migrated'] === 'true' || row.migrated === '1' || row.migrated === true,
+      tested: row['Tested'] === 'true' || row.tested === '1' || row.tested === true,
+      cutover_completed: row['Cutover Completed'] === 'true' || row.cutover_completed === '1' || row.cutover_completed === true,
+      assigned_engineer: row['Assigned Engineer'] || row.assigned_engineer,
+      engineer_completed_work: row['Engineer Completed Work'] || row.engineer_completed_work,
+      notes: row['Notes'] || row.notes
     }));
     const created = await publicNetworkModel.bulkCreate(mapped);
     fs.unlinkSync(filePath);

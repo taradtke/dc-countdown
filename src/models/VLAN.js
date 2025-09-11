@@ -9,6 +9,7 @@ class VLAN extends BaseModel {
       network: 'string',
       gateway: 'string',
       assigned_engineer: 'string',
+      engineer_completed_work: 'string',
       migrated: 'boolean',
       verified: 'boolean',
       migration_date: 'date',

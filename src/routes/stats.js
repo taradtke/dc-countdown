@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate } = require('../middleware/auth');
 
-router.get('/', authenticate, async (req, res) => {
+// Stats endpoint is public for dashboard display
+// optionalAuth is applied at app level to get user info if available
+router.get('/', async (req, res) => {
   try {
     // Return basic stats structure that the frontend expects
     const stats = {

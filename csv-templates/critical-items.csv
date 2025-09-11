@@ -1,0 +1,6 @@
+Title,Description,Success Criteria,Priority,Status,Assigned Engineer,Deadline,Notes
+Firewall Migration,Migrate primary firewall to new DC,All rules tested and traffic flowing,high,pending,John Smith,2025-02-15,Critical for security
+Load Balancer Setup,Configure load balancers in new environment,All applications balanced and tested,high,pending,Jane Doe,2025-02-20,Required for application availability
+DNS Cutover,Update DNS records for new IP addresses,All records updated and propagated,medium,pending,,2025-03-01,Coordinate with network team
+SSL Certificate Update,Install new SSL certificates,All certificates valid and installed,medium,pending,,2025-03-15,Renew before migration
+Backup Verification,Verify all backup systems operational,All backups tested and restored successfully,high,pending,,2025-02-10,Test restore procedures

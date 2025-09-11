@@ -1,0 +1,4 @@
+Network Name,Provider,Circuit ID,Bandwidth,Location,Network Type,VLAN ID,Subnet,Gateway,Primary DNS,Secondary DNS,Migration Wave,Migration Status,Cutover Scheduled,Cutover Completed,Cutover Date,Assigned Engineer,Notes
+Corp-Network-1,AT&T,ATT-NET-001,1Gbps,Dallas DC,MPLS,100,10.10.10.0/24,10.10.10.1,8.8.8.8,8.8.4.4,Wave 1,pending,false,false,,John Smith,Corporate network
+Branch-Network-1,Verizon,VZ-NET-002,100Mbps,Houston Branch,Internet,200,10.20.20.0/24,10.20.20.1,1.1.1.1,1.0.0.1,Wave 2,pending,false,false,,Jane Doe,Branch office network
+Guest-Network-1,Lumen,LUM-NET-003,500Mbps,Austin Office,Guest,300,10.30.30.0/24,10.30.30.1,9.9.9.9,149.112.112.112,Wave 3,pending,false,false,,,Guest WiFi network

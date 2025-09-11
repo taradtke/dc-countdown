@@ -1,0 +1,4 @@
+Network Name,Network,CIDR,Provider,Gateway,DNS Servers,Customer,Action,VLAN,Current Devices,Current Interfaces,New Devices,New Interfaces,Migrated,Tested,Cutover Completed,Assigned Engineer,Engineer Completed Work,Notes
+Public-Net-1,192.0.2.0/24,192.0.2.0/24,AT&T,192.0.2.1,8.8.8.8;8.8.4.4,Acme Corp,Migrate,100,firewall-01,eth0,firewall-02,eth0,false,false,false,John Smith,,Primary public network
+Public-Net-2,203.0.113.0/24,203.0.113.0/24,Verizon,203.0.113.1,1.1.1.1;1.0.0.1,Beta Inc,New,200,router-01,gi0/1,router-02,gi0/1,false,false,false,Jane Doe,,Secondary public network
+Public-Net-3,198.51.100.0/24,198.51.100.0/24,Lumen,198.51.100.1,9.9.9.9,Gamma LLC,Decommission,300,switch-01,port1,switch-02,port1,false,false,false,,,DMZ network

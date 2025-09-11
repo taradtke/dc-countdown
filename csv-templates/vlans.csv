@@ -1,0 +1,4 @@
+VLAN ID,Name,Description,Network,Gateway,Migrated,Verified,Assigned Engineer,Engineer Completed Work
+100,Production,Production network VLAN,192.168.1.0/24,192.168.1.1,false,false,John Smith,
+200,Development,Development network VLAN,192.168.2.0/24,192.168.2.1,false,false,Jane Doe,
+300,Management,Management network VLAN,192.168.3.0/24,192.168.3.1,false,false,,

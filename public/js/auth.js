@@ -189,6 +189,16 @@ class AuthManager {
         return false;
     }
 
+    clearAuth() {
+        // Clear auth data from memory and storage
+        this.token = null;
+        this.refreshToken = null;
+        this.user = null;
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+    }
+
     async logout() {
         try {
             // Call logout endpoint
@@ -202,9 +212,7 @@ class AuthManager {
             console.error('Logout error:', error);
         } finally {
             // Clear local storage
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('user');
+            this.clearAuth();
             
             // Redirect to login
             window.location.href = '/login.html';
@@ -244,9 +252,9 @@ class AuthManager {
 // Initialize auth manager
 const authManager = new AuthManager();
 
-// Override fetch to include auth headers
+// Override fetch to include auth headers and handle auth errors
 const originalFetch = window.fetch;
-window.fetch = function(...args) {
+window.fetch = async function(...args) {
     // Add auth header if available
     if (authManager.getToken()) {
         // Ensure args[1] exists (options object)
@@ -263,5 +271,21 @@ window.fetch = function(...args) {
         args[1].headers['Authorization'] = `Bearer ${authManager.getToken()}`;
     }
     
-    return originalFetch.apply(this, args);
+    // Make the request
+    const response = await originalFetch.apply(this, args);
+    
+    // Check for authentication errors
+    if (response.status === 401) {
+        // Don't redirect for API calls, let the calling code handle it
+        const url = typeof args[0] === 'string' ? args[0] : args[0].url;
+        if (url && url.includes('/api/')) {
+            // For API calls, return the 401 response so the calling code can handle it
+            return response;
+        }
+        // For non-API calls, redirect to login
+        authManager.clearAuth();
+        authManager.redirectToLogin();
+    }
+    
+    return response;
 };

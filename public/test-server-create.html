@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Server Creation</title>
+</head>
+<body>
+    <h1>Debug Server Creation</h1>
+    <button onclick="testCreate()">Test Create Server</button>
+    <pre id="output"></pre>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(msg) {
+            output.textContent += msg + '\n';
+            console.log(msg);
+        }
+        
+        async function testCreate() {
+            log('Starting test...');
+            
+            // Get token from localStorage
+            const token = localStorage.getItem('authToken');
+            log('Token present: ' + (token ? 'YES' : 'NO'));
+            
+            if (!token) {
+                log('ERROR: No auth token found. Please login first.');
+                return;
+            }
+            
+            const payload = {
+                customer: "Test Customer",
+                vm_name: "test-vm",
+                host: "",
+                ip_addresses: "",
+                notes: ""
+            };
+            
+            log('Sending request to: /api/servers');
+            log('Payload: ' + JSON.stringify(payload));
+            
+            try {
+                const response = await fetch('/api/servers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                log('Response status: ' + response.status);
+                log('Response headers Content-Type: ' + response.headers.get('content-type'));
+                
+                const text = await response.text();
+                log('Raw response (first 500 chars): ' + text.substring(0, 500));
+                
+                if (response.ok) {
+                    try {
+                        const data = JSON.parse(text);
+                        log('SUCCESS: Server created with ID: ' + data.id);
+                    } catch (e) {
+                        log('Response OK but not JSON: ' + e.message);
+                    }
+                } else {
+                    log('ERROR: Response not OK');
+                    if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+                        log('ERROR: Server returned HTML instead of JSON!');
+                        log('This usually means a redirect or error page');
+                    }
+                }
+                
+            } catch (error) {
+                log('FETCH ERROR: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

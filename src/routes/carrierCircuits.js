@@ -94,7 +94,19 @@ router.post('/import', upload.single('csv'), async (req, res) => {
       bandwidth: row['Bandwidth'] || row.bandwidth,
       location_a: row['Location A'] || row.location_a || row['Location'] || row.location,
       location_z: row['Location Z'] || row.location_z,
-      assigned_engineer: row['Assigned Engineer'] || row.assigned_engineer
+      customer: row['Customer'] || row.customer,
+      service: row['Service'] || row.service,
+      backhaul_vendor: row['Backhaul Vendor'] || row.backhaul_vendor,
+      circuit_location: row['Circuit Location'] || row.circuit_location,
+      carrier_circuit_id: row['Carrier Circuit ID'] || row.carrier_circuit_id,
+      vlan: row['VLAN'] || row.vlan,
+      starmax_mgmt_ip: row['Starmax Mgmt IP'] || row.starmax_mgmt_ip,
+      migrated: row['Migrated'] === 'true' || row.migrated === '1' || row.migrated === true,
+      tested: row['Tested'] === 'true' || row.tested === '1' || row.tested === true,
+      cutover_completed: row['Cutover Completed'] === 'true' || row.cutover_completed === '1' || row.cutover_completed === true,
+      assigned_engineer: row['Assigned Engineer'] || row.assigned_engineer,
+      engineer_completed_work: row['Engineer Completed Work'] || row.engineer_completed_work,
+      notes: row['Notes'] || row.notes
     }));
     const created = await circuitModel.bulkCreate(mapped);
     fs.unlinkSync(filePath);

@@ -1,0 +1,4 @@
+Circuit ID,Provider,Type,Bandwidth,Location A,Location Z,Customer,Service,Backhaul Vendor,Circuit Location,Carrier Circuit ID,VLAN,Starmax Mgmt IP,Migrated,Tested,Cutover Completed,Assigned Engineer,Engineer Completed Work,Notes
+CKT-001,AT&T,MPLS,100Mbps,Dallas DC,Austin DC,Acme Corp,Internet,Verizon,Dallas,ATT-12345,100,10.1.1.1,false,false,false,John Smith,,Primary circuit
+CKT-002,Verizon,P2P,1Gbps,Houston DC,Dallas DC,Beta Inc,Private,AT&T,Houston,VZ-67890,200,10.2.2.1,false,false,false,Jane Doe,,Backup circuit
+CKT-003,Lumen,Internet,500Mbps,Austin DC,Houston DC,Gamma LLC,Internet,Lumen,Austin,LUM-11111,300,10.3.3.1,false,false,false,,,Secondary circuit

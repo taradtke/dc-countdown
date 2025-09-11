@@ -1,0 +1,4 @@
+NNI ID,Provider,Type,Bandwidth,Location,Carrier Name,Circuit ID,Interface Type,VLAN Range,IP Block,Current Device,New Device,Migration Status,Tested,Cutover Completed,Engineer Assigned
+NNI-001,AT&T,Peering,10Gbps,Dallas DC,AT&T,ATT-NNI-001,10GigE,100-199,10.0.0.0/24,router-01,,pending,false,false,John Smith
+NNI-002,Verizon,Transit,1Gbps,Houston DC,Verizon,VZ-NNI-002,1GigE,200-299,10.1.0.0/24,router-02,,pending,false,false,Jane Doe
+NNI-003,Lumen,Peering,10Gbps,Austin DC,Lumen,LUM-NNI-003,10GigE,300-399,10.2.0.0/24,router-03,,pending,false,false,

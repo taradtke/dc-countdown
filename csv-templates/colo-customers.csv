@@ -1,0 +1,4 @@
+Customer Name,Rack Location,New Cabinet Number,Equipment Count,Power Usage,Contacted,Migration Scheduled,Migration Completed,Assigned Engineer,Engineer Completed Work,Notes
+Acme Corp,Row-A-Rack-12,CAB-101,15,2.5,false,false,false,John Smith,,Full rack customer
+Beta Inc,Row-B-Rack-05,CAB-202,8,1.2,false,false,false,Jane Doe,,Half rack customer
+Gamma LLC,Row-C-Rack-20,CAB-303,3,0.5,false,false,false,,,Quarter rack customer

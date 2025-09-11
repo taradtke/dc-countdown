@@ -1,8 +1,13 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const csvParser = require('csv-parser');
+const fs = require('fs');
 const CriticalItem = require('../models/CriticalItem');
 const { authenticate, requireRole } = require('../middleware/auth');
 const logger = require('../utils/logger');
+
+const upload = multer({ dest: 'uploads/' });
 
 // Initialize model
 const criticalItemModel = new CriticalItem();
@@ -76,6 +81,44 @@ router.delete('/:id', authenticate, async (req, res) => {
     } catch (error) {
         logger.error('Error deleting critical item:', error);
         res.status(500).json({ error: 'Failed to delete critical item' });
+    }
+});
+
+// POST import critical items from CSV
+router.post('/import', upload.single('csv'), requireRole('manager'), async (req, res) => {
+    const filePath = req.file?.path;
+    if (!filePath) {
+        return res.status(400).json({ error: 'No file uploaded' });
+    }
+    
+    try {
+        const data = [];
+        await new Promise((resolve, reject) => {
+            fs.createReadStream(filePath)
+                .pipe(csvParser())
+                .on('data', (row) => data.push(row))
+                .on('end', resolve)
+                .on('error', reject);
+        });
+        
+        const mapped = data.map(row => ({
+            title: row['Title'] || row.title,
+            description: row['Description'] || row.description,
+            success_criteria: row['Success Criteria'] || row.success_criteria,
+            priority: row['Priority'] || row.priority || 'medium',
+            status: row['Status'] || row.status || 'pending',
+            assigned_engineer: row['Assigned Engineer'] || row.assigned_engineer,
+            deadline: row['Deadline'] || row.deadline,
+            notes: row['Notes'] || row.notes
+        }));
+        
+        const created = await criticalItemModel.bulkCreate(mapped);
+        fs.unlinkSync(filePath);
+        res.status(201).json({ message: `${created.length} critical items imported successfully` });
+    } catch (error) {
+        logger.error('Error importing critical items:', error);
+        if (filePath) fs.unlinkSync(filePath);
+        res.status(500).json({ error: 'Failed to import critical items' });
     }
 });
 
